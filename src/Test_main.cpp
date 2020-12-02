@@ -54,21 +54,15 @@ double test() {
   const int ITER_CNT = 100;
 
   T A(SIZE, SIZE, true);
-  // A.display();
   T B(SIZE, SIZE, true);
-  // B.display();
   T W(1, 1);
-  // W.display();
   double t1 = mygettime();
 
   for (int i = 0; i < ITER_CNT; i++) {
     B = ((0.1 * i) * A + B * B) * 1.e-4;
     B = -B * ~(A + B);
-    // B.display();
-    // std::cout << "\n";
   }
   W = (B - A);
-  // W.display();
 
   double exec_time = mygettime() - t1;
 

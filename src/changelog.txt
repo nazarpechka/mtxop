@@ -1,0 +1,6 @@
+Changelog for matrix operations optimalization:
+
+v0.1 - Reference implementation
+    -> O0, iter=100, dim=100 - 0.73sec
+    -> O3, iter=100, dim=100 - 0.24sec
+
