@@ -1,35 +1,35 @@
-#pragma once
+#ifndef __CVCT_H__
+#define __CVCT_H__
 
 typedef double FPTYPE;
 
 #include "CMtx.h"
-#include "CAlgError.h"
+// #include "CAlgError.h"
 
-namespace MyAlgebra
-{
-	class CMtx;
+namespace MyAlgebra {
+class CMtx;
 
-	class CVct
-	{
-	private:
-		FPTYPE  *vector;
-		int     size;
+class CVct {
+ private:
+  static const int kDefaultSize;
+  FPTYPE *vector_;
+  int size_;
 
-	public:
-		CVct(int size);
+ public:
+  CVct(int size);
+  ~CVct();
 
-		FPTYPE & operator[](int ind) const;
+  const CVct &operator=(FPTYPE val);
+  const CVct &operator=(const CVct &rhs);
 
-		const CVct & operator=( const CVct & rhs );
-		const CVct & operator=( FPTYPE val );
+  CVct operator-(const CVct &rhs);
+  // Transpozycja - zamiana wektora wierszowego na kolumnowy i odwrotnie
+  CVct operator~();
+  CVct operator*(const CMtx &rhs);
+  CVct operator+(const CVct &rhs);
 
-		CVct operator+( const CVct & rhs );
-		CVct operator-( const CVct & rhs );
+  FPTYPE &operator[](int ind) const;
+};
+}  // namespace MyAlgebra
 
-		CVct operator*( const CMtx & rhs );
-
-		// Transpozycja - zamiana wektora wierszowego na kolumnowy i odwrotnie
-		CVct operator~();
-	};
-}
-
+#endif  // __CVCT_H__
