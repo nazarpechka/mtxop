@@ -8,12 +8,9 @@ class CVct;
 
 class CMtx {
  private:
-  static const int kDefaultRowCnt;
-  static const int kDefaultColCnt;
-
-  FPTYPE **row_ptr_;
   int row_cnt_;
   int col_cnt_;
+  FPTYPE **row_ptr_;
 
  public:
   static const FPTYPE ALG_PRECISION;
@@ -23,10 +20,12 @@ class CMtx {
   // =========================================================================
 
   // Tworzy macierz z mozliwoscią losowej inicjalizacji
-  CMtx(int row_cnt, int col_cnt, bool rand_init = false);
+  // Removed default value for rand_init to avoid confusion with the next
+  // constructor
+  CMtx(size_t row_cnt, size_t col_cnt, bool rand_init);
 
   // Tworzy kwadratową macierz diagonalną
-  CMtx(int row_cnt, FPTYPE diagonal);
+  CMtx(size_t row_cnt, FPTYPE diagonal);
 
   CMtx(const CMtx &rhs);
 

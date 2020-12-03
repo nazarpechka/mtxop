@@ -12,6 +12,7 @@
 #include <stdlib.h>
 
 #include <iostream>
+#include <string>
 
 // ===================================================================
 // FUNKCJE DO POMIARU CZASU
@@ -47,15 +48,15 @@ double mygettime(void) {
 // Definiujemy szablon aby łatwiej uruchamiać testy dla roznych implementacji
 // klasy. Rozne implementacje będą umieszczone w roznych przestrzeniach nazw.
 template <typename T>
-double test() {
+double test(const int SIZE, const int ITER_CNT) {
   // Przykładowe testowe obliczenie macierzowe. Podobne obliczenia będą
   // uzywane do oceny efektywnosci implementacji w konkursie.
-  const int SIZE = 100;
-  const int ITER_CNT = 100;
+  // const int SIZE = 100;
+  // const int ITER_CNT = 100;
 
   T A(SIZE, SIZE, true);
   T B(SIZE, SIZE, true);
-  T W(1, 1);
+  T W(1, 1, false);
   double t1 = mygettime();
 
   for (int i = 0; i < ITER_CNT; i++) {
@@ -72,16 +73,27 @@ double test() {
 }
 
 int main(int argc, char* argv[]) {
-  double t_prog = test<MyAlgebra::CMtx>();
-  printf("Czas wykonania testowany:    %7.2lfs\n", t_prog);
-  // MyAlgebra::CMtx matrix(3, 3, true);
-  // MyAlgebra::CMtx second_matrix(3, 3, true);
-  // matrix.display();
-  // std::cout << '\n';
-  // second_matrix.display();
-  // std::cout << '\n';
-  // MyAlgebra::CMtx tr_matrix = matrix * second_matrix;
-  // tr_matrix.display();
+  std::string command;
+  std::cout << "Matrix operations testing\n";
+
+  while (command != "q") {
+    std::cout << "> ";
+    std::cin >> command;
+    if (command == "test") {
+      int size, iter;
+      std::cout << "\tMatrices dimension = ";
+      std::cin >> size;
+      std::cout << "\tAmount of iterations = ";
+      std::cin >> iter;
+
+      double t_prog = test<MyAlgebra::CMtx>(size, iter);
+      printf("\tExecution time:    %7.2lfs\n", t_prog);
+    } else if (command == "q") {
+      std::cout << "Goodbye!\n";
+    } else {
+      std::cout << "Unknown command!\n";
+    }
+  }
 
 #if 0
 	double t_ref = test<RefAlgebra::CMtx>();

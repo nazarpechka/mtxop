@@ -5,14 +5,8 @@
 
 namespace MyAlgebra {
 
-const int CMtx::kDefaultRowCnt = 4;
-const int CMtx::kDefaultColCnt = 4;
-
-CMtx::CMtx(int row_cnt, int col_cnt, bool rand_init) {
-  row_cnt_ = (row_cnt > 0) ? row_cnt : kDefaultRowCnt;
-  col_cnt_ = (col_cnt > 0) ? col_cnt : kDefaultColCnt;
-
-  row_ptr_ = new FPTYPE *[row_cnt_];
+CMtx::CMtx(size_t row_cnt, size_t col_cnt, bool rand_init)
+    : row_cnt_(row_cnt), col_cnt_(col_cnt), row_ptr_(new FPTYPE *[row_cnt_]) {
   for (int i = 0; i < row_cnt_; ++i) {
     row_ptr_[i] = new FPTYPE[col_cnt_];
   }
@@ -26,11 +20,8 @@ CMtx::CMtx(int row_cnt, int col_cnt, bool rand_init) {
   }
 }
 
-CMtx::CMtx(int row_cnt, FPTYPE diagonal) {
-  row_cnt_ = (row_cnt > 0) ? row_cnt : kDefaultRowCnt;
-  col_cnt_ = row_cnt_;
-
-  row_ptr_ = new FPTYPE *[row_cnt_];
+CMtx::CMtx(size_t row_cnt, FPTYPE diagonal)
+    : row_cnt_(row_cnt), col_cnt_(row_cnt), row_ptr_(new FPTYPE *[row_cnt_]) {
   for (int i = 0; i < row_cnt_; ++i) {
     row_ptr_[i] = new FPTYPE[row_cnt_];
 
@@ -43,11 +34,10 @@ CMtx::CMtx(int row_cnt, FPTYPE diagonal) {
   }
 }
 
-CMtx::CMtx(const CMtx &rhs) {
-  row_cnt_ = rhs.row_cnt_;
-  col_cnt_ = rhs.col_cnt_;
-
-  row_ptr_ = new FPTYPE *[row_cnt_];
+CMtx::CMtx(const CMtx &rhs)
+    : row_cnt_(rhs.row_cnt_),
+      col_cnt_(rhs.col_cnt_),
+      row_ptr_(new FPTYPE *[row_cnt_]) {
   for (int i = 0; i < row_cnt_; ++i) {
     row_ptr_[i] = new FPTYPE[col_cnt_];
     // TODO: Change shallow copy to deep copy?
@@ -99,7 +89,7 @@ const CMtx &CMtx::operator=(const FPTYPE diagonal) {
 // const CMtx &CMtx::operator=(CMtx &&rhs) {}
 
 CMtx CMtx::operator-() const {
-  CMtx res(row_cnt_, col_cnt_);
+  CMtx res(row_cnt_, col_cnt_, false);
 
   for (int i = 0; i < row_cnt_; ++i) {
     for (int j = 0; j < col_cnt_; ++j) {
@@ -114,7 +104,7 @@ CMtx CMtx::operator-() const {
 CMtx CMtx::operator-(const CMtx &rhs) const {
   // TODO: Check size, should be the same
 
-  CMtx res(row_cnt_, col_cnt_);
+  CMtx res(row_cnt_, col_cnt_, false);
 
   for (int i = 0; i < row_cnt_; ++i) {
     for (int j = 0; j < col_cnt_; ++j) {
@@ -126,7 +116,7 @@ CMtx CMtx::operator-(const CMtx &rhs) const {
 }
 
 CMtx CMtx::operator~() const {
-  CMtx res(col_cnt_, row_cnt_);
+  CMtx res(col_cnt_, row_cnt_, false);
 
   for (int i = 0; i < row_cnt_; ++i) {
     for (int j = 0; j < col_cnt_; ++j) {
@@ -141,7 +131,7 @@ CVct CMtx::operator*(const CVct &rhs) const {}
 
 CMtx CMtx::operator*(const CMtx &rhs) const {
   // TODO: Check size
-  CMtx res(row_cnt_, rhs.col_cnt_);
+  CMtx res(row_cnt_, rhs.col_cnt_, false);
 
   for (int l_row = 0; l_row < row_cnt_; ++l_row) {
     for (int r_col = 0; r_col < rhs.col_cnt_; ++r_col) {
@@ -160,7 +150,7 @@ CMtx CMtx::operator*(const CMtx &rhs) const {
 }
 
 CMtx CMtx::operator*(FPTYPE multiplier) const {
-  CMtx res(row_cnt_, col_cnt_);
+  CMtx res(row_cnt_, col_cnt_, false);
 
   for (int i = 0; i < row_cnt_; ++i) {
     for (int j = 0; j < col_cnt_; ++j) {
@@ -174,7 +164,7 @@ CMtx CMtx::operator*(FPTYPE multiplier) const {
 CMtx CMtx::operator+(const CMtx &rhs) const {
   // TODO: Check size, should be the same
 
-  CMtx res(row_cnt_, col_cnt_);
+  CMtx res(row_cnt_, col_cnt_, false);
 
   for (int i = 0; i < row_cnt_; ++i) {
     for (int j = 0; j < col_cnt_; ++j) {

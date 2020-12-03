@@ -4,13 +4,7 @@
 
 namespace MyAlgebra {
 
-const int CVct::kDefaultSize = 10;
-
-CVct::CVct(int size) {
-  if (size < 1) size = kDefaultSize;
-  size_ = size;
-  vector_ = new FPTYPE[size_];
-}
+CVct::CVct(size_t size) : size_(size), vector_(new FPTYPE[size_]) {}
 
 CVct::~CVct() { delete[] vector_; }
 

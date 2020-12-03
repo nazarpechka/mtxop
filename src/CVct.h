@@ -11,12 +11,11 @@ class CMtx;
 
 class CVct {
  private:
-  static const int kDefaultSize;
-  FPTYPE *vector_;
   int size_;
+  FPTYPE *vector_;
 
  public:
-  CVct(int size);
+  CVct(size_t size);
   ~CVct();
 
   const CVct &operator=(FPTYPE val);
