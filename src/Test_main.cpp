@@ -74,7 +74,7 @@ double test() {
 
 int main(void) {
   std::string command;
-  const int kTestsAmount = 10;
+  const int kTestsAmount = 15;
 
   std::cout << "Matrix operations testing\n";
   double results[kTestsAmount];
