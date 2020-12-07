@@ -48,11 +48,11 @@ double mygettime(void) {
 // Definiujemy szablon aby łatwiej uruchamiać testy dla roznych implementacji
 // klasy. Rozne implementacje będą umieszczone w roznych przestrzeniach nazw.
 template <typename T>
-double test(const int SIZE, const int ITER_CNT) {
+double test() {
   // Przykładowe testowe obliczenie macierzowe. Podobne obliczenia będą
   // uzywane do oceny efektywnosci implementacji w konkursie.
-  // const int SIZE = 100;
-  // const int ITER_CNT = 100;
+  const int SIZE = 100;
+  const int ITER_CNT = 1000;
 
   T A(SIZE, SIZE, true);
   T B(SIZE, SIZE, true);
@@ -74,26 +74,34 @@ double test(const int SIZE, const int ITER_CNT) {
 
 int main(void) {
   std::string command;
+  const int kTestsAmount = 10;
+
   std::cout << "Matrix operations testing\n";
-
-  while (command != "q") {
-    std::cout << "> ";
-    std::cin >> command;
-    if (command == "test") {
-      int size, iter;
-      std::cout << "\tMatrices dimension = ";
-      std::cin >> size;
-      std::cout << "\tAmount of iterations = ";
-      std::cin >> iter;
-
-      double t_prog = test<MyAlgebra::CMtx>(size, iter);
-      printf("\tExecution time:    %7.2lfs\n", t_prog);
-    } else if (command == "q") {
-      std::cout << "Goodbye!\n";
-    } else {
-      std::cout << "Unknown command!\n";
-    }
+  double results[kTestsAmount];
+  double sum = 0;
+  for (int i = 0; i < kTestsAmount; ++i) {
+    sum += test<MyAlgebra::CMtx>();
   }
+  std::cout << "Average execution time: " << sum / kTestsAmount << '\n';
+
+  // while (command != "q") {
+  //   std::cout << "> ";
+  //   std::cin >> command;
+  //   if (command == "test") {
+  //     int size, iter;
+  //     std::cout << "\tMatrices dimension = ";
+  //     std::cin >> size;
+  //     std::cout << "\tAmount of iterations = ";
+  //     std::cin >> iter;
+
+  //     double t_prog = test<MyAlgebra::CMtx>(size, iter);
+  //     printf("\tExecution time:    %7.2lfs\n", t_prog);
+  //   } else if (command == "q") {
+  //     std::cout << "Goodbye!\n";
+  //   } else {
+  //     std::cout << "Unknown command!\n";
+  //   }
+  // }
 
 #if 0
 	double t_ref = test<RefAlgebra::CMtx>();
