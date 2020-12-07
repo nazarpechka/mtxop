@@ -72,7 +72,7 @@ double test(const int SIZE, const int ITER_CNT) {
   return exec_time;
 }
 
-int main(int argc, char* argv[]) {
+int main(void) {
   std::string command;
   std::cout << "Matrix operations testing\n";
 

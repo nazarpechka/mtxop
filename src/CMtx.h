@@ -1,17 +1,14 @@
 #ifndef __CMTX_H__
 #define __CMTX_H__
 
+#include <stddef.h>
+
 #include "CVct.h"
 
 namespace MyAlgebra {
 class CVct;
 
 class CMtx {
- private:
-  int row_cnt_;
-  int col_cnt_;
-  FPTYPE **row_ptr_;
-
  public:
   static const FPTYPE ALG_PRECISION;
 
@@ -42,7 +39,7 @@ class CMtx {
   const CMtx &operator=(const FPTYPE diagonal);
 
   // Operator przenoszący
-  //   const CMtx &operator=(CMtx &&rhs);
+  const CMtx &operator=(CMtx &&rhs);
 
   // =========================================================================
   // OPERACJE ALGEBRAICZNE
@@ -86,6 +83,11 @@ class CMtx {
   void display() const;
 
   // friend CMtx operator*( FPTYPE multiplier, const CMtx &rhs );
+
+ private:
+  int row_cnt_;
+  int col_cnt_;
+  FPTYPE **row_ptr_;
 };
 
 CMtx operator*(FPTYPE multiplier, const CMtx &rhs);

@@ -86,7 +86,24 @@ const CMtx &CMtx::operator=(const FPTYPE diagonal) {
   return *this;
 }
 
-// const CMtx &CMtx::operator=(CMtx &&rhs) {}
+const CMtx &CMtx::operator=(CMtx &&rhs) {
+  if (this != &rhs) {
+    for (int i = 0; i < row_cnt_; ++i) {
+      delete[] row_ptr_[i];
+    }
+    delete[] row_ptr_;
+
+    row_cnt_ = rhs.row_cnt_;
+    col_cnt_ = rhs.col_cnt_;
+    row_ptr_ = rhs.row_ptr_;
+
+    rhs.row_cnt_ = 0;
+    rhs.col_cnt_ = 0;
+    rhs.row_ptr_ = nullptr;
+  }
+
+  return *this;
+}
 
 CMtx CMtx::operator-() const {
   CMtx res(row_cnt_, col_cnt_, false);

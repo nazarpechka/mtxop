@@ -3,6 +3,8 @@
 
 typedef double FPTYPE;
 
+#include <stddef.h>
+
 #include "CMtx.h"
 // #include "CAlgError.h"
 
@@ -10,10 +12,6 @@ namespace MyAlgebra {
 class CMtx;
 
 class CVct {
- private:
-  int size_;
-  FPTYPE *vector_;
-
  public:
   CVct(size_t size);
   ~CVct();
@@ -28,6 +26,10 @@ class CVct {
   CVct operator+(const CVct &rhs);
 
   FPTYPE &operator[](int ind) const;
+
+ private:
+  int size_;
+  FPTYPE *vector_;
 };
 }  // namespace MyAlgebra
 

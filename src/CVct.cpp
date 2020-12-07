@@ -25,6 +25,8 @@ const CVct &CVct::operator=(FPTYPE val) {
   for (int i = 0; i < size_; ++i) {
     vector_[i] = val;
   }
+
+  return *this;
 }
 
 CVct CVct::operator-(const CVct &rhs) {
