@@ -76,13 +76,17 @@ int main(void) {
   std::string command;
   const int kTestsAmount = 15;
 
-  std::cout << "Matrix operations testing\n";
-  double results[kTestsAmount];
-  double sum = 0;
-  for (int i = 0; i < kTestsAmount; ++i) {
-    sum += test<MyAlgebra::CMtx>();
-  }
-  std::cout << "Average execution time: " << sum / kTestsAmount << '\n';
+  MyAlgebra::CMtx test(5, 5, true);
+  test.display();
+  test[2][4] = 999;
+  test.display();
+
+  // std::cout << "Matrix operations testing\n";
+  // double sum = 0;
+  // for (int i = 0; i < kTestsAmount; ++i) {
+  //   sum += test<MyAlgebra::CMtx>();
+  // }
+  // std::cout << "Average execution time: " << sum / kTestsAmount << '\n';
 
   // while (command != "q") {
   //   std::cout << "> ";

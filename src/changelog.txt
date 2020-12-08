@@ -1,7 +1,8 @@
 Changelog for matrix operations optimalization:
 
 v0.1 - Reference implementation
-    -> O3, iter=100, dim=100, tests=15 - 3.075sec
+    -> O3, iter=100, dim=100, tests=15 - 2.2825sec
 
-
+v0.2 - Pseudo 2d array, 22% faster
+    -> 03, iter=100, dim=100, tests=15 - 1.8613sec
 
