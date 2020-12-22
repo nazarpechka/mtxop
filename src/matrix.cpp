@@ -1,13 +1,13 @@
-#include "CMtx.h"
+#include "matrix.h"
 
 #include <cstdlib>
 #include <iostream>
 
 namespace MyAlgebra {
 
-const FPTYPE CMtx::ALG_PRECISION = 10e-6;
+const FPTYPE Matrix::ALG_PRECISION = 10e-6;
 
-CMtx::CMtx(size_t row_cnt, size_t col_cnt, bool rand_init)
+Matrix::Matrix(size_t row_cnt, size_t col_cnt, bool rand_init)
     : m_row_cnt(row_cnt),
       m_col_cnt(col_cnt),
       m_array(new FPTYPE[m_row_cnt * m_col_cnt]) {
@@ -20,7 +20,7 @@ CMtx::CMtx(size_t row_cnt, size_t col_cnt, bool rand_init)
   }
 }
 
-CMtx::CMtx(size_t row_cnt, FPTYPE diagonal)
+Matrix::Matrix(size_t row_cnt, FPTYPE diagonal)
     : m_row_cnt(row_cnt),
       m_col_cnt(row_cnt),
       m_array(new FPTYPE[m_row_cnt * m_row_cnt]) {
@@ -34,7 +34,7 @@ CMtx::CMtx(size_t row_cnt, FPTYPE diagonal)
   }
 }
 
-CMtx::CMtx(const CMtx &other)
+Matrix::Matrix(const Matrix &other)
     : m_row_cnt(other.m_row_cnt),
       m_col_cnt(other.m_col_cnt),
       m_array(new FPTYPE[m_row_cnt * m_col_cnt]) {
@@ -42,7 +42,7 @@ CMtx::CMtx(const CMtx &other)
   memcpy(m_array, other.m_array, sizeof(FPTYPE) * m_row_cnt * m_col_cnt);
 }
 
-CMtx::CMtx(CMtx &&other)
+Matrix::Matrix(Matrix &&other)
     : m_row_cnt(other.m_row_cnt),
       m_col_cnt(other.m_col_cnt),
       m_array(other.m_array) {
@@ -51,9 +51,9 @@ CMtx::CMtx(CMtx &&other)
   other.m_array = nullptr;
 }
 
-CMtx::~CMtx() { delete[] m_array; }
+Matrix::~Matrix() { delete[] m_array; }
 
-const CMtx &CMtx::operator=(const CMtx &other) {
+const Matrix &Matrix::operator=(const Matrix &other) {
   if (this != &other) {
     delete[] m_array;
 
@@ -70,7 +70,7 @@ const CMtx &CMtx::operator=(const CMtx &other) {
   return *this;
 }
 
-const CMtx &CMtx::operator=(const FPTYPE diagonal) {
+const Matrix &Matrix::operator=(const FPTYPE diagonal) {
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
       if (i != j)
@@ -83,7 +83,7 @@ const CMtx &CMtx::operator=(const FPTYPE diagonal) {
   return *this;
 }
 
-const CMtx &CMtx::operator=(CMtx &&other) {
+const Matrix &Matrix::operator=(Matrix &&other) {
   if (this != &other) {
     delete[] m_array;
 
@@ -99,8 +99,8 @@ const CMtx &CMtx::operator=(CMtx &&other) {
   return *this;
 }
 
-CMtx CMtx::operator-() const {
-  CMtx res(m_row_cnt, m_col_cnt, false);
+Matrix Matrix::operator-() const {
+  Matrix res(m_row_cnt, m_col_cnt, false);
   int tmp_idx;
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
@@ -113,10 +113,10 @@ CMtx CMtx::operator-() const {
   return res;
 }
 
-CMtx CMtx::operator-(const CMtx &other) const {
+Matrix Matrix::operator-(const Matrix &other) const {
   // TODO: Check size, should be the same
 
-  CMtx res(m_row_cnt, m_col_cnt, false);
+  Matrix res(m_row_cnt, m_col_cnt, false);
 
   int tmp_idx;
   for (int i = 0; i < m_row_cnt; ++i) {
@@ -129,8 +129,8 @@ CMtx CMtx::operator-(const CMtx &other) const {
   return res;
 }
 
-CMtx CMtx::operator~() const {
-  CMtx res(m_col_cnt, m_row_cnt, false);
+Matrix Matrix::operator~() const {
+  Matrix res(m_col_cnt, m_row_cnt, false);
 
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
@@ -141,15 +141,15 @@ CMtx CMtx::operator~() const {
   return res;
 }
 
-FPTYPE CMtx::determinant() const {
+FPTYPE Matrix::determinant() const {
   if (m_row_cnt != m_col_cnt) return 0;
 }
 
-CVct CMtx::operator*(const CVct &other) const {}
+Vector Matrix::operator*(const Vector &other) const {}
 
-CMtx CMtx::operator*(const CMtx &other) const {
+Matrix Matrix::operator*(const Matrix &other) const {
   // TODO: Check size
-  CMtx res(m_row_cnt, other.m_col_cnt, false);
+  Matrix res(m_row_cnt, other.m_col_cnt, false);
 
   for (int l_row = 0; l_row < m_row_cnt; ++l_row) {
     for (int r_col = 0; r_col < other.m_col_cnt; ++r_col) {
@@ -168,8 +168,8 @@ CMtx CMtx::operator*(const CMtx &other) const {
   return res;
 }
 
-CMtx CMtx::operator*(FPTYPE multiplier) const {
-  CMtx res(m_row_cnt, m_col_cnt, false);
+Matrix Matrix::operator*(FPTYPE multiplier) const {
+  Matrix res(m_row_cnt, m_col_cnt, false);
   int tmp_idx;
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
@@ -181,10 +181,10 @@ CMtx CMtx::operator*(FPTYPE multiplier) const {
   return res;
 }
 
-CMtx CMtx::operator+(const CMtx &other) const {
+Matrix Matrix::operator+(const Matrix &other) const {
   // TODO: Check size, should be the same
 
-  CMtx res(m_row_cnt, m_col_cnt, false);
+  Matrix res(m_row_cnt, m_col_cnt, false);
   int tmp_idx;
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
@@ -196,8 +196,8 @@ CMtx CMtx::operator+(const CMtx &other) const {
   return res;
 }
 
-CMtx CMtx::operator^(int power) const {
-  CMtx res(m_row_cnt, m_col_cnt, false);
+Matrix Matrix::operator^(int power) const {
+  Matrix res(m_row_cnt, m_col_cnt, false);
 
   if (power == -1) {
   } else if (power == 0) {
@@ -221,9 +221,11 @@ CMtx CMtx::operator^(int power) const {
   return res;
 }
 
-FPTYPE *CMtx::operator[](int row_ind) { return &m_array[row_ind * m_col_cnt]; }
+FPTYPE *Matrix::operator[](int row_ind) {
+  return &m_array[row_ind * m_col_cnt];
+}
 
-bool CMtx::operator==(const CMtx &other) const {
+bool Matrix::operator==(const Matrix &other) const {
   if (m_row_cnt != other.m_row_cnt || m_col_cnt != other.m_col_cnt)
     return false;
 
@@ -241,7 +243,7 @@ bool CMtx::operator==(const CMtx &other) const {
   return true;
 }
 
-void CMtx::display() const {
+void Matrix::display() const {
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
       std::cout << m_array[i * m_col_cnt + j] << " ";
@@ -251,7 +253,7 @@ void CMtx::display() const {
   std::cout << '\n';
 }
 
-CMtx operator*(FPTYPE multiplier, const CMtx &other) {
+Matrix operator*(FPTYPE multiplier, const Matrix &other) {
   return other * multiplier;
 }
 

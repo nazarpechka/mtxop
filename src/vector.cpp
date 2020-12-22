@@ -1,14 +1,14 @@
-#include "CVct.h"
+#include "vector.h"
 
 #include <iostream>
 
 namespace MyAlgebra {
 
-CVct::CVct(size_t size) : size_(size), vector_(new FPTYPE[size_]) {}
+Vector::Vector(size_t size) : size_(size), vector_(new FPTYPE[size_]) {}
 
-CVct::~CVct() { delete[] vector_; }
+Vector::~Vector() { delete[] vector_; }
 
-const CVct &CVct::operator=(const CVct &rhs) {
+const Vector &Vector::operator=(const Vector &rhs) {
   if (this == &rhs) return *this;
 
   delete[] vector_;
@@ -21,7 +21,7 @@ const CVct &CVct::operator=(const CVct &rhs) {
   return *this;
 }
 
-const CVct &CVct::operator=(FPTYPE val) {
+const Vector &Vector::operator=(FPTYPE val) {
   for (int i = 0; i < size_; ++i) {
     vector_[i] = val;
   }
@@ -29,9 +29,9 @@ const CVct &CVct::operator=(FPTYPE val) {
   return *this;
 }
 
-CVct CVct::operator-(const CVct &rhs) {
+Vector Vector::operator-(const Vector &rhs) {
   // TODO: Check size
-  CVct res(size_);
+  Vector res(size_);
 
   for (int i = 0; i < size_; ++i) {
     res.vector_[i] = vector_[i] - rhs.vector_[i];
@@ -40,13 +40,13 @@ CVct CVct::operator-(const CVct &rhs) {
   return res;
 }
 
-CVct CVct::operator~() {}
+Vector Vector::operator~() {}
 
-CVct CVct::operator*(const CMtx &rhs) {}
+Vector Vector::operator*(const Matrix &rhs) {}
 
-CVct CVct::operator+(const CVct &rhs) {
+Vector Vector::operator+(const Vector &rhs) {
   // TODO: Check size
-  CVct res(size_);
+  Vector res(size_);
 
   for (int i = 0; i < size_; ++i) {
     res.vector_[i] = vector_[i] + rhs.vector_[i];
@@ -55,5 +55,5 @@ CVct CVct::operator+(const CVct &rhs) {
   return res;
 }
 
-FPTYPE &CVct::operator[](int ind) const { return vector_[ind]; }
+FPTYPE &Vector::operator[](int ind) const { return vector_[ind]; }
 }  // namespace MyAlgebra

@@ -5,25 +5,25 @@ typedef double FPTYPE;
 
 #include <stddef.h>
 
-#include "CMtx.h"
+#include "matrix.h"
 // #include "CAlgError.h"
 
 namespace MyAlgebra {
-class CMtx;
+class Matrix;
 
-class CVct {
+class Vector {
  public:
-  CVct(size_t size);
-  ~CVct();
+  Vector(size_t size);
+  ~Vector();
 
-  const CVct &operator=(FPTYPE val);
-  const CVct &operator=(const CVct &rhs);
+  const Vector &operator=(FPTYPE val);
+  const Vector &operator=(const Vector &rhs);
 
-  CVct operator-(const CVct &rhs);
+  Vector operator-(const Vector &rhs);
   // Transpozycja - zamiana wektora wierszowego na kolumnowy i odwrotnie
-  CVct operator~();
-  CVct operator*(const CMtx &rhs);
-  CVct operator+(const CVct &rhs);
+  Vector operator~();
+  Vector operator*(const Matrix &rhs);
+  Vector operator+(const Vector &rhs);
 
   FPTYPE &operator[](int ind) const;
 

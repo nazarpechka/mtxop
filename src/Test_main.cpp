@@ -1,18 +1,18 @@
 // Precompiled headers - don't use them
 // #include "stdafx.h"
 
-#include "CMtx.h"
-#include "CVct.h"
+#include "matrix.h"
+#include "vector.h"
 
-// Reference implementation in those files
-// #include "CVctRef.h"
-// #include "CMtxRef.h"
-
+// Reference implementation
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <iostream>
 #include <string>
+
+#include "matix_ref.h"
+#include "vector_ref.h"
 
 // ===================================================================
 // FUNKCJE DO POMIARU CZASU
@@ -27,6 +27,10 @@
 #include <math.h>
 #include <time.h>
 
+// ===================================================================
+// FUNKCJA OCENY CZASU WYKONANIA
+// ===================================================================
+
 double mygettime(void) {
 #ifdef _WIN32
   struct _timeb tb;
@@ -40,10 +44,6 @@ double mygettime(void) {
   return (double)tv.tv_sec + (0.000001 * (double)tv.tv_usec);
 #endif
 }
-
-// ===================================================================
-// FUNKCJA OCENY CZASU WYKONANIA
-// ===================================================================
 
 // Definiujemy szablon aby łatwiej uruchamiać testy dla roznych implementacji
 // klasy. Rozne implementacje będą umieszczone w roznych przestrzeniach nazw.
@@ -76,7 +76,7 @@ int main(void) {
   std::string command;
   const int kTestsAmount = 15;
 
-  MyAlgebra::CMtx test(5, 5, true);
+  MyAlgebra::Matrix test(5, 5, true);
   test.display();
   test[2][4] = 999;
   test.display();
@@ -84,7 +84,7 @@ int main(void) {
   // std::cout << "Matrix operations testing\n";
   // double sum = 0;
   // for (int i = 0; i < kTestsAmount; ++i) {
-  //   sum += test<MyAlgebra::CMtx>();
+  //   sum += test<MyAlgebra::Matrix>();
   // }
   // std::cout << "Average execution time: " << sum / kTestsAmount << '\n';
 
@@ -98,7 +98,7 @@ int main(void) {
   //     std::cout << "\tAmount of iterations = ";
   //     std::cin >> iter;
 
-  //     double t_prog = test<MyAlgebra::CMtx>(size, iter);
+  //     double t_prog = test<MyAlgebra::Matrix>(size, iter);
   //     printf("\tExecution time:    %7.2lfs\n", t_prog);
   //   } else if (command == "q") {
   //     std::cout << "Goodbye!\n";
@@ -108,7 +108,7 @@ int main(void) {
   // }
 
 #if 0
-	double t_ref = test<RefAlgebra::CMtx>();
+	double t_ref = test<RefAlgebra::Matrix>();
 
 	printf( "Czas wykonania referencyjny: %7.2lfs\n", t_ref );
 	printf( "Czas wykonania testowany:    %7.2lfs\n", t_prog );
