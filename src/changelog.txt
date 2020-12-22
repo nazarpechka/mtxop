@@ -1,8 +1,7 @@
 Changelog for matrix operations optimalization:
+Testing - iter=100, dim = 1000, tests=25, O3 optimalization
 
-v0.1 - Reference implementation
-    -> O3, iter=100, dim=100, tests=15 - 2.2825sec
-
-v0.2 - Pseudo 2d array, 22% faster
-    -> 03, iter=100, dim=100, tests=15 - 1.8613sec
+v0.1 - Reference implementation (RefAlgebra namespace) - 2.32sec (Q=1.0)
+v0.2 - Pseudo 2d array                                 - 1.98sec (Q=1.24)
+v0.3 - Multithreading (4 threads)                      - 0.77sec (Q=3.02)
 

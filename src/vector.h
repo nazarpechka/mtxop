@@ -14,22 +14,30 @@ class Matrix;
 class Vector {
  public:
   Vector(size_t size);
+
+  Vector(const Vector &other);
+  Vector(Vector &&other);
+
   ~Vector();
 
+  const Vector &operator=(const Vector &other);
+  const Vector &operator=(Vector &&other);
   const Vector &operator=(FPTYPE val);
-  const Vector &operator=(const Vector &rhs);
 
-  Vector operator-(const Vector &rhs);
+  Vector operator+(const Vector &other);
+  Vector operator-(const Vector &other);
+  Vector operator*(const Matrix &other);
   // Transpozycja - zamiana wektora wierszowego na kolumnowy i odwrotnie
   Vector operator~();
-  Vector operator*(const Matrix &rhs);
-  Vector operator+(const Vector &rhs);
 
   FPTYPE &operator[](int ind) const;
 
  private:
-  int size_;
-  FPTYPE *vector_;
+  int m_size;
+  FPTYPE *m_array;
+
+  void copy(const Vector &other);
+  void move(Vector &&other);
 };
 }  // namespace MyAlgebra
 

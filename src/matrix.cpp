@@ -1,8 +1,12 @@
 #include "matrix.h"
 
+#include <math.h>
+
 #include <cstdlib>
 #include <iostream>
 #include <thread>
+
+#define MULTITHREAD 1
 
 namespace MyAlgebra {
 
@@ -15,7 +19,7 @@ Matrix::Matrix(size_t row_cnt, size_t col_cnt, bool rand_init)
   if (rand_init) {
     for (int i = 0; i < m_row_cnt; ++i) {
       for (int j = 0; j < m_col_cnt; ++j) {
-        m_array[i * m_col_cnt + j] = rand() % 15;
+        m_array[i * m_col_cnt + j] = rand();
       }
     }
   }
@@ -35,22 +39,9 @@ Matrix::Matrix(size_t row_cnt, FPTYPE diagonal)
   }
 }
 
-Matrix::Matrix(const Matrix &other)
-    : m_row_cnt(other.m_row_cnt),
-      m_col_cnt(other.m_col_cnt),
-      m_array(new FPTYPE[m_row_cnt * m_col_cnt]) {
-  // TODO: Change shallow copy to deep copy?
-  memcpy(m_array, other.m_array, sizeof(FPTYPE) * m_row_cnt * m_col_cnt);
-}
+Matrix::Matrix(const Matrix &other) { copy(other); }
 
-Matrix::Matrix(Matrix &&other)
-    : m_row_cnt(other.m_row_cnt),
-      m_col_cnt(other.m_col_cnt),
-      m_array(other.m_array) {
-  other.m_row_cnt = 0;
-  other.m_col_cnt = 0;
-  other.m_array = nullptr;
-}
+Matrix::Matrix(Matrix &&other) { move(std::move(other)); }
 
 Matrix::~Matrix() { delete[] m_array; }
 
@@ -58,14 +49,17 @@ const Matrix &Matrix::operator=(const Matrix &other) {
   if (this != &other) {
     delete[] m_array;
 
-    m_row_cnt = other.m_row_cnt;
-    m_col_cnt = other.m_col_cnt;
+    copy(other);
+  }
 
-    size_t tmp_size = m_row_cnt * m_col_cnt;
+  return *this;
+}
 
-    m_array = new FPTYPE[tmp_size];
-    // TODO: Change shallow copy to deep copy?
-    memcpy(m_array, other.m_array, sizeof(FPTYPE) * tmp_size);
+const Matrix &Matrix::operator=(Matrix &&other) {
+  if (this != &other) {
+    delete[] m_array;
+
+    move(std::move(other));
   }
 
   return *this;
@@ -84,30 +78,15 @@ const Matrix &Matrix::operator=(const FPTYPE diagonal) {
   return *this;
 }
 
-const Matrix &Matrix::operator=(Matrix &&other) {
-  if (this != &other) {
-    delete[] m_array;
+Matrix Matrix::operator+(const Matrix &other) const {
+  // TODO: Check size, should be the same
 
-    m_row_cnt = other.m_row_cnt;
-    m_col_cnt = other.m_col_cnt;
-    m_array = other.m_array;
-
-    other.m_row_cnt = 0;
-    other.m_col_cnt = 0;
-    other.m_array = nullptr;
-  }
-
-  return *this;
-}
-
-Matrix Matrix::operator-() const {
   Matrix res(m_row_cnt, m_col_cnt, false);
   int tmp_idx;
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
       tmp_idx = i * m_col_cnt + j;
-      // TODO: Change for other types
-      res.m_array[tmp_idx] = m_array[tmp_idx] * -1;
+      res.m_array[tmp_idx] = m_array[tmp_idx] + other.m_array[tmp_idx];
     }
   }
 
@@ -130,53 +109,55 @@ Matrix Matrix::operator-(const Matrix &other) const {
   return res;
 }
 
-Matrix Matrix::operator~() const {
-  Matrix res(m_col_cnt, m_row_cnt, false);
-
+Matrix Matrix::operator-() const {
+  Matrix res(m_row_cnt, m_col_cnt, false);
+  int tmp_idx;
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
-      res.m_array[i * m_col_cnt + j] = m_array[j * m_col_cnt + i];
+      tmp_idx = i * m_col_cnt + j;
+      res.m_array[tmp_idx] = m_array[tmp_idx] * -1;
     }
   }
 
   return res;
 }
 
-FPTYPE Matrix::determinant() const {
-  if (m_row_cnt != m_col_cnt) return 0;
-}
-
-Vector Matrix::operator*(const Vector &other) const {}
-
 Matrix Matrix::operator*(const Matrix &other) const {
   // TODO: Check size
   Matrix res(m_row_cnt, other.m_col_cnt, false);
 
+#if MULTITHREAD
+
   std::thread t1([&] { multiplyThreaded(res, other, 0); });
   std::thread t2([&] { multiplyThreaded(res, other, 1); });
   std::thread t3([&] { multiplyThreaded(res, other, 2); });
-  std::thread t4([&] { multiplyThreaded(res, other, 3); });
+  multiplyThreaded(res, other, 3);
   t1.join();
   t2.join();
   t3.join();
-  t4.join();
 
-  // for (int l_row = 0; l_row < m_row_cnt; ++l_row) {
-  //   for (int r_col = 0; r_col < other.m_col_cnt; ++r_col) {
-  //     FPTYPE sum = 0;
-  //     int iter = 0;
-  //     while (iter < m_row_cnt) {
-  //       sum += m_array[l_row * m_col_cnt + iter] *
-  //              other.m_array[iter * other.m_col_cnt + r_col];
-  //       iter++;
-  //     }
+#else
 
-  //     res.m_array[l_row * other.m_col_cnt + r_col] = sum;
-  //   }
-  // }
+  for (int l_row = 0; l_row < m_row_cnt; ++l_row) {
+    for (int r_col = 0; r_col < other.m_col_cnt; ++r_col) {
+      FPTYPE sum = 0;
+      int iter = 0;
+      while (iter < m_row_cnt) {
+        sum += m_array[l_row * m_col_cnt + iter] *
+               other.m_array[iter * other.m_col_cnt + r_col];
+        iter++;
+      }
+
+      res.m_array[l_row * other.m_col_cnt + r_col] = sum;
+    }
+  }
+
+#endif
 
   return res;
 }
+
+Vector Matrix::operator*(const Vector &other) const {}
 
 Matrix Matrix::operator*(FPTYPE multiplier) const {
   Matrix res(m_row_cnt, m_col_cnt, false);
@@ -191,15 +172,12 @@ Matrix Matrix::operator*(FPTYPE multiplier) const {
   return res;
 }
 
-Matrix Matrix::operator+(const Matrix &other) const {
-  // TODO: Check size, should be the same
+Matrix Matrix::operator~() const {
+  Matrix res(m_col_cnt, m_row_cnt, false);
 
-  Matrix res(m_row_cnt, m_col_cnt, false);
-  int tmp_idx;
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
-      tmp_idx = i * m_col_cnt + j;
-      res.m_array[tmp_idx] = m_array[tmp_idx] + other.m_array[tmp_idx];
+      res.m_array[i * m_col_cnt + j] = m_array[j * m_col_cnt + i];
     }
   }
 
@@ -235,6 +213,10 @@ FPTYPE *Matrix::operator[](int row_ind) {
   return &m_array[row_ind * m_col_cnt];
 }
 
+int Matrix::getRowCount() const { return m_row_cnt; }
+
+int Matrix::getColCount() const { return m_col_cnt; }
+
 bool Matrix::operator==(const Matrix &other) const {
   if (m_row_cnt != other.m_row_cnt || m_col_cnt != other.m_col_cnt)
     return false;
@@ -244,7 +226,7 @@ bool Matrix::operator==(const Matrix &other) const {
     for (int i = 0; i < m_row_cnt; ++i) {
       for (int j = 0; j < m_col_cnt; ++j) {
         tmp_idx = i * m_col_cnt + j;
-        if (m_array[tmp_idx] - other.m_array[tmp_idx] > ALG_PRECISION)
+        if (abs(m_array[tmp_idx] - other.m_array[tmp_idx]) > ALG_PRECISION)
           return false;
       }
     }
@@ -278,6 +260,25 @@ void Matrix::multiplyThreaded(const Matrix &res, const Matrix &other,
       res.m_array[l_row * other.m_col_cnt + r_col] = sum;
     }
   }
+}
+
+void Matrix::copy(const Matrix &other) {
+  m_row_cnt = other.m_row_cnt;
+  m_col_cnt = other.m_col_cnt;
+
+  uint32_t size = m_row_cnt * m_col_cnt;
+  m_array = new FPTYPE[size];
+  memcpy(m_array, other.m_array, sizeof(FPTYPE) * size);
+}
+
+void Matrix::move(Matrix &&other) {
+  m_row_cnt = other.m_row_cnt;
+  m_col_cnt = other.m_col_cnt;
+  m_array = other.m_array;
+
+  other.m_row_cnt = 0;
+  other.m_col_cnt = 0;
+  other.m_array = nullptr;
 }
 
 Matrix operator*(FPTYPE multiplier, const Matrix &other) {

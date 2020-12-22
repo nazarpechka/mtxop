@@ -4,56 +4,80 @@
 
 namespace MyAlgebra {
 
-Vector::Vector(size_t size) : size_(size), vector_(new FPTYPE[size_]) {}
+Vector::Vector(size_t size) : m_size(size), m_array(new FPTYPE[m_size]) {}
 
-Vector::~Vector() { delete[] vector_; }
+Vector::Vector(const Vector &other) { copy(other); }
+Vector::Vector(Vector &&other) { move(std::move(other)); }
 
-const Vector &Vector::operator=(const Vector &rhs) {
-  if (this == &rhs) return *this;
+Vector::~Vector() { delete[] m_array; }
 
-  delete[] vector_;
+const Vector &Vector::operator=(const Vector &other) {
+  if (this != &other) {
+    delete[] m_array;
 
-  size_ = rhs.size_;
-  vector_ = new FPTYPE[size_];
-  // TODO: Change shallow copy to deep copy?
-  memcpy(vector_, rhs.vector_, size_ * sizeof(FPTYPE));
+    copy(other);
+  }
 
   return *this;
+}
+
+const Vector &Vector::operator=(Vector &&other) {
+  if (this != &other) {
+    delete[] m_array;
+
+    move(std::move(other));
+  }
 }
 
 const Vector &Vector::operator=(FPTYPE val) {
-  for (int i = 0; i < size_; ++i) {
-    vector_[i] = val;
+  for (int i = 0; i < m_size; ++i) {
+    m_array[i] = val;
   }
 
   return *this;
 }
 
-Vector Vector::operator-(const Vector &rhs) {
+Vector Vector::operator+(const Vector &other) {
   // TODO: Check size
-  Vector res(size_);
+  Vector res(m_size);
 
-  for (int i = 0; i < size_; ++i) {
-    res.vector_[i] = vector_[i] - rhs.vector_[i];
+  for (int i = 0; i < m_size; ++i) {
+    res.m_array[i] = m_array[i] + other.m_array[i];
   }
 
   return res;
 }
+
+Vector Vector::operator-(const Vector &other) {
+  // TODO: Check size
+  Vector res(m_size);
+
+  for (int i = 0; i < m_size; ++i) {
+    res.m_array[i] = m_array[i] - other.m_array[i];
+  }
+
+  return res;
+}
+
+Vector Vector::operator*(const Matrix &other) {}
 
 Vector Vector::operator~() {}
 
-Vector Vector::operator*(const Matrix &rhs) {}
+FPTYPE &Vector::operator[](int ind) const { return m_array[ind]; }
 
-Vector Vector::operator+(const Vector &rhs) {
-  // TODO: Check size
-  Vector res(size_);
+void Vector::copy(const Vector &other) {
+  m_size = other.m_size;
+  m_array = new FPTYPE[m_size];
 
-  for (int i = 0; i < size_; ++i) {
-    res.vector_[i] = vector_[i] + rhs.vector_[i];
-  }
-
-  return res;
+  memcpy(m_array, other.m_array, m_size * sizeof(FPTYPE));
 }
 
-FPTYPE &Vector::operator[](int ind) const { return vector_[ind]; }
+void Vector::move(Vector &&other) {
+  m_size = other.m_size;
+  m_array = other.m_array;
+
+  other.m_size = 0;
+  other.m_array = nullptr;
+}
+
 }  // namespace MyAlgebra

@@ -5,6 +5,7 @@
 #include "vector.h"
 
 // Reference implementation
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -45,6 +46,20 @@ double mygettime(void) {
 #endif
 }
 
+bool operator==(RefAlgebra::Matrix &first, MyAlgebra::Matrix &second) {
+  if (first.getRowCount() != second.getRowCount() ||
+      first.getColCount() != second.getColCount())
+    return false;
+
+  for (int i = 0; i < first.getRowCount(); ++i) {
+    for (int j = 0; j < first.getColCount(); ++j) {
+      if (abs(first[i][j] - second[i][j]) > 10e-6) return false;
+    }
+  }
+
+  return true;
+}
+
 // Definiujemy szablon aby łatwiej uruchamiać testy dla roznych implementacji
 // klasy. Rozne implementacje będą umieszczone w roznych przestrzeniach nazw.
 template <typename T>
@@ -75,13 +90,32 @@ double speedTest() {
 template <typename T>
 void accuracyTest() {
   // Check if operations are performed correctly
-  T first(5, 5, true);
-  first.display();
-  std::cout << '\n';
-  T second(5, 5, true);
-  second.display();
-  std::cout << '\n';
-  (first * second).display();
+  const int ROW_CNT = 500;
+  const int COL_CNT = 500;
+
+  srand(123);
+  RefAlgebra::Matrix first_ref(ROW_CNT, COL_CNT, true);
+  RefAlgebra::Matrix second_ref(ROW_CNT, COL_CNT, true);
+
+  srand(123);
+  T first(ROW_CNT, COL_CNT, true);
+  T second(ROW_CNT, COL_CNT, true);
+
+  std::cout << std::boolalpha;
+
+  std::cout << "Equality test:\n";
+  std::cout << (first_ref == first) << "\n";
+  std::cout << (second_ref == second) << "\n";
+
+  std::cout << "Multiplication test:\n";
+  RefAlgebra::Matrix mult_ref(first_ref * second_ref);
+  T mult(first * second);
+  std::cout << (mult_ref == mult) << "\n";
+
+  std::cout << "Addition test:\n";
+  RefAlgebra::Matrix add_ref(first_ref + second_ref);
+  T add(first + second);
+  std::cout << (add_ref == add) << "\n";
 
   return;
 }
@@ -90,13 +124,30 @@ int main(void) {
   // accuracyTest<MyAlgebra::Matrix>();
 
 #if 1
-  const int kTestsAmount = 15;
   std::cout << "Matrix operations testing\n";
-  double sum = 0;
-  for (int i = 0; i < kTestsAmount; ++i) {
-    sum += speedTest<MyAlgebra::Matrix>();
+  const int TEST_AMOUNT = 25;
+
+  double t_prog = 0;
+  for (int i = 0; i < TEST_AMOUNT; ++i) {
+    t_prog += speedTest<MyAlgebra::Matrix>();
   }
-  std::cout << "Average execution time: " << sum / kTestsAmount << '\n';
+  t_prog /= TEST_AMOUNT;
+  printf("Czas wykonania testowany:    %7.2lfs\n", t_prog);
+
+  double t_ref = 0;
+#if 0
+  for (int i = 0; i < TEST_AMOUNT; ++i) {
+    t_ref += speedTest<RefAlgebra::Matrix>();
+  }
+  t_ref /= TEST_AMOUNT;
+#else
+  t_ref = 2.34;
+#endif
+
+  printf("Czas wykonania referencyjny: %7.2lfs\n", t_ref);
+
+  printf("Wspolczynnik przyspieszenia Q: %5.2lf\n", t_ref / t_prog);
+
 #endif
 
 #if 0
@@ -120,13 +171,5 @@ int main(void) {
       std::cout << "Unknown command!\n";
     }
   }
-#endif
-
-#if 0
-	double t_ref = test<RefAlgebra::Matrix>();
-
-	printf( "Czas wykonania referencyjny: %7.2lfs\n", t_ref );
-	printf( "Czas wykonania testowany:    %7.2lfs\n", t_prog );
-	printf("Wsp�czynnik przyspieszenia Q: %5.2lf", t_ref / t_prog);
 #endif
 }
