@@ -1,7 +1,7 @@
-Changelog for matrix operations optimalization:
-Testing - iter=100, dim = 1000, tests=25, O3 optimalization
+Changelog for matrix operations optimization:
+Testing - iter=1000, dim=100, tests=50, O3 compiler option
 
-v0.1 - Reference implementation (RefAlgebra namespace) - 2.32sec (Q=1.0)
-v0.2 - Pseudo 2d array                                 - 1.98sec (Q=1.24)
-v0.3 - Multithreading (4 threads)                      - 0.77sec (Q=3.02)
+v0.1 - Reference implementation (RefAlgebra namespace) - 2.35sec (Q=1.0)
+v0.2 - Pseudo 2d array                                 - 2.03sec (Q=1.15)
+v0.3 - Multithreading (4 threads)                      - 0.73sec (Q=3.22)
 

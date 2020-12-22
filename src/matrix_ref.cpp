@@ -1,5 +1,7 @@
 #include "matrix_ref.h"
 
+#include <math.h>
+
 #include <cstdlib>
 #include <iostream>
 
@@ -131,16 +133,16 @@ Matrix Matrix::operator*(const Matrix &other) const {
   // TODO: Check size
   Matrix res(m_row_cnt, other.m_col_cnt, false);
 
-  for (int l_row = 0; l_row < m_row_cnt; ++l_row) {
-    for (int r_col = 0; r_col < other.m_col_cnt; ++r_col) {
-      FPTYPE sum = 0;
-      int iter = 0;
-      while (iter < m_row_cnt) {
-        sum += m_array[l_row][iter] * other.m_array[iter][r_col];
-        iter++;
+  FPTYPE sum = 0;
+  for (int row = 0; row < m_row_cnt; ++row) {
+    for (int col = 0; col < other.m_col_cnt; ++col) {
+      sum = 0;
+
+      for (int pos = 0; pos < m_col_cnt; ++pos) {
+        sum += m_array[row][pos] * other.m_array[pos][col];
       }
 
-      res.m_array[l_row][r_col] = sum;
+      res.m_array[row][col] = sum;
     }
   }
 
@@ -188,7 +190,8 @@ bool Matrix::operator==(const Matrix &other) const {
 
     for (int i = 0; i < m_row_cnt; ++i) {
       for (int j = 0; j < m_col_cnt; ++j) {
-        if (m_array[i][j] - other.m_array[i][j] > ALG_PRECISION) return false;
+        if (abs(m_array[i][j] - other.m_array[i][j]) > ALG_PRECISION)
+          return false;
       }
     }
   }
@@ -203,6 +206,7 @@ void Matrix::display() const {
     }
     std::cout << '\n';
   }
+  std::cout << '\n';
 }
 
 void Matrix::copy(const Matrix &other) {

@@ -125,8 +125,7 @@ int main(void) {
 
 #if 1
   std::cout << "Matrix operations testing\n";
-  const int TEST_AMOUNT = 25;
-
+  const int TEST_AMOUNT = 50;
   double t_prog = 0;
   for (int i = 0; i < TEST_AMOUNT; ++i) {
     t_prog += speedTest<MyAlgebra::Matrix>();
@@ -141,7 +140,7 @@ int main(void) {
   }
   t_ref /= TEST_AMOUNT;
 #else
-  t_ref = 2.34;
+  t_ref = 2.35;
 #endif
 
   printf("Czas wykonania referencyjny: %7.2lfs\n", t_ref);

@@ -137,18 +137,16 @@ Matrix Matrix::operator*(const Matrix &other) const {
   t3.join();
 
 #else
-
-  for (int l_row = 0; l_row < m_row_cnt; ++l_row) {
-    for (int r_col = 0; r_col < other.m_col_cnt; ++r_col) {
-      FPTYPE sum = 0;
-      int iter = 0;
-      while (iter < m_row_cnt) {
-        sum += m_array[l_row * m_col_cnt + iter] *
-               other.m_array[iter * other.m_col_cnt + r_col];
-        iter++;
+  FPTYPE sum = 0;
+  for (int row = 0; row < m_row_cnt; ++row) {
+    for (int col = 0; col < other.m_col_cnt; ++col) {
+      sum = 0;
+      for (int pos = 0; pos < m_col_cnt; ++pos) {
+        sum += m_array[row * m_col_cnt + pos] *
+               other.m_array[pos * other.m_col_cnt + col];
       }
 
-      res.m_array[l_row * other.m_col_cnt + r_col] = sum;
+      res.m_array[row * other.m_col_cnt + col] = sum;
     }
   }
 
@@ -247,17 +245,16 @@ void Matrix::display() const {
 
 void Matrix::multiplyThreaded(const Matrix &res, const Matrix &other,
                               int start) const {
-  for (int l_row = start; l_row < m_row_cnt; l_row += 4) {
-    for (int r_col = 0; r_col < other.m_col_cnt; ++r_col) {
-      FPTYPE sum = 0;
-      int iter = 0;
-      while (iter < m_row_cnt) {
-        sum += m_array[l_row * m_col_cnt + iter] *
-               other.m_array[iter * other.m_col_cnt + r_col];
-        iter++;
+  FPTYPE sum = 0;
+  for (int row = start; row < m_row_cnt; row += 4) {
+    for (int col = 0; col < other.m_col_cnt; ++col) {
+      sum = 0;
+      for (int pos = 0; pos < m_col_cnt; ++pos) {
+        sum += m_array[row * m_col_cnt + pos] *
+               other.m_array[pos * other.m_col_cnt + col];
       }
 
-      res.m_array[l_row * other.m_col_cnt + r_col] = sum;
+      res.m_array[row * other.m_col_cnt + col] = sum;
     }
   }
 }
