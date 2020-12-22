@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <iostream>
+#include <thread>
 
 namespace MyAlgebra {
 
@@ -151,19 +152,28 @@ Matrix Matrix::operator*(const Matrix &other) const {
   // TODO: Check size
   Matrix res(m_row_cnt, other.m_col_cnt, false);
 
-  for (int l_row = 0; l_row < m_row_cnt; ++l_row) {
-    for (int r_col = 0; r_col < other.m_col_cnt; ++r_col) {
-      FPTYPE sum = 0;
-      int iter = 0;
-      while (iter < m_row_cnt) {
-        sum += m_array[l_row * m_col_cnt + iter] *
-               other.m_array[iter * other.m_col_cnt + r_col];
-        iter++;
-      }
+  std::thread t1([&] { multiplyThreaded(res, other, 0); });
+  std::thread t2([&] { multiplyThreaded(res, other, 1); });
+  std::thread t3([&] { multiplyThreaded(res, other, 2); });
+  std::thread t4([&] { multiplyThreaded(res, other, 3); });
+  t1.join();
+  t2.join();
+  t3.join();
+  t4.join();
 
-      res.m_array[l_row * other.m_col_cnt + r_col] = sum;
-    }
-  }
+  // for (int l_row = 0; l_row < m_row_cnt; ++l_row) {
+  //   for (int r_col = 0; r_col < other.m_col_cnt; ++r_col) {
+  //     FPTYPE sum = 0;
+  //     int iter = 0;
+  //     while (iter < m_row_cnt) {
+  //       sum += m_array[l_row * m_col_cnt + iter] *
+  //              other.m_array[iter * other.m_col_cnt + r_col];
+  //       iter++;
+  //     }
+
+  //     res.m_array[l_row * other.m_col_cnt + r_col] = sum;
+  //   }
+  // }
 
   return res;
 }
@@ -251,6 +261,23 @@ void Matrix::display() const {
     std::cout << '\n';
   }
   std::cout << '\n';
+}
+
+void Matrix::multiplyThreaded(const Matrix &res, const Matrix &other,
+                              int start) const {
+  for (int l_row = start; l_row < m_row_cnt; l_row += 4) {
+    for (int r_col = 0; r_col < other.m_col_cnt; ++r_col) {
+      FPTYPE sum = 0;
+      int iter = 0;
+      while (iter < m_row_cnt) {
+        sum += m_array[l_row * m_col_cnt + iter] *
+               other.m_array[iter * other.m_col_cnt + r_col];
+        iter++;
+      }
+
+      res.m_array[l_row * other.m_col_cnt + r_col] = sum;
+    }
+  }
 }
 
 Matrix operator*(FPTYPE multiplier, const Matrix &other) {

@@ -88,6 +88,8 @@ class Matrix {
   void display() const;
 
   // friend Matrix operator*( FPTYPE multiplier, const Matrix &other );
+  void multiplyThreaded(const Matrix &res, const Matrix &other,
+                        int start) const;
 
  private:
   int m_row_cnt;

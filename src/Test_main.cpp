@@ -11,7 +11,7 @@
 #include <iostream>
 #include <string>
 
-#include "matix_ref.h"
+#include "matrix_ref.h"
 #include "vector_ref.h"
 
 // ===================================================================
@@ -48,7 +48,7 @@ double mygettime(void) {
 // Definiujemy szablon aby łatwiej uruchamiać testy dla roznych implementacji
 // klasy. Rozne implementacje będą umieszczone w roznych przestrzeniach nazw.
 template <typename T>
-double test() {
+double speedTest() {
   // Przykładowe testowe obliczenie macierzowe. Podobne obliczenia będą
   // uzywane do oceny efektywnosci implementacji w konkursie.
   const int SIZE = 100;
@@ -72,40 +72,55 @@ double test() {
   return exec_time;
 }
 
+template <typename T>
+void accuracyTest() {
+  // Check if operations are performed correctly
+  T first(5, 5, true);
+  first.display();
+  std::cout << '\n';
+  T second(5, 5, true);
+  second.display();
+  std::cout << '\n';
+  (first * second).display();
+
+  return;
+}
+
 int main(void) {
-  std::string command;
+  // accuracyTest<MyAlgebra::Matrix>();
+
+#if 1
   const int kTestsAmount = 15;
+  std::cout << "Matrix operations testing\n";
+  double sum = 0;
+  for (int i = 0; i < kTestsAmount; ++i) {
+    sum += speedTest<MyAlgebra::Matrix>();
+  }
+  std::cout << "Average execution time: " << sum / kTestsAmount << '\n';
+#endif
 
-  MyAlgebra::Matrix test(5, 5, true);
-  test.display();
-  test[2][4] = 999;
-  test.display();
+#if 0
 
-  // std::cout << "Matrix operations testing\n";
-  // double sum = 0;
-  // for (int i = 0; i < kTestsAmount; ++i) {
-  //   sum += test<MyAlgebra::Matrix>();
-  // }
-  // std::cout << "Average execution time: " << sum / kTestsAmount << '\n';
+  std::string command;
+  while (command != "q") {
+    std::cout << "> ";
+    std::cin >> command;
+    if (command == "test") {
+      int size, iter;
+      std::cout << "\tMatrices dimension = ";
+      std::cin >> size;
+      std::cout << "\tAmount of iterations = ";
+      std::cin >> iter;
 
-  // while (command != "q") {
-  //   std::cout << "> ";
-  //   std::cin >> command;
-  //   if (command == "test") {
-  //     int size, iter;
-  //     std::cout << "\tMatrices dimension = ";
-  //     std::cin >> size;
-  //     std::cout << "\tAmount of iterations = ";
-  //     std::cin >> iter;
-
-  //     double t_prog = test<MyAlgebra::Matrix>(size, iter);
-  //     printf("\tExecution time:    %7.2lfs\n", t_prog);
-  //   } else if (command == "q") {
-  //     std::cout << "Goodbye!\n";
-  //   } else {
-  //     std::cout << "Unknown command!\n";
-  //   }
-  // }
+      double t_prog = test<MyAlgebra::Matrix>(size, iter);
+      printf("\tExecution time:    %7.2lfs\n", t_prog);
+    } else if (command == "q") {
+      std::cout << "Goodbye!\n";
+    } else {
+      std::cout << "Unknown command!\n";
+    }
+  }
+#endif
 
 #if 0
 	double t_ref = test<RefAlgebra::Matrix>();
