@@ -88,6 +88,22 @@ const Matrix &Matrix::operator=(const FPTYPE diagonal) {
   return *this;
 }
 
+bool Matrix::operator==(const Matrix &other) const {
+  if (this != &other) {
+    if (m_row_cnt != other.m_row_cnt || m_col_cnt != other.m_col_cnt)
+      return false;
+
+    for (int i = 0; i < m_row_cnt; ++i) {
+      for (int j = 0; j < m_col_cnt; ++j) {
+        if (abs(m_array[i][j] - other.m_array[i][j]) > ALG_PRECISION)
+          return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 Matrix Matrix::operator+(const Matrix &other) const {
   // TODO: Check size, should be the same
 
@@ -183,26 +199,10 @@ int Matrix::getRowCount() const { return m_row_cnt; }
 
 int Matrix::getColCount() const { return m_col_cnt; }
 
-bool Matrix::operator==(const Matrix &other) const {
-  if (this != &other) {
-    if (m_row_cnt != other.m_row_cnt || m_col_cnt != other.m_col_cnt)
-      return false;
-
-    for (int i = 0; i < m_row_cnt; ++i) {
-      for (int j = 0; j < m_col_cnt; ++j) {
-        if (abs(m_array[i][j] - other.m_array[i][j]) > ALG_PRECISION)
-          return false;
-      }
-    }
-  }
-
-  return true;
-}
-
 void Matrix::display() const {
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
-      std::cout << m_array[i][j] << " ";
+      std::cout << m_array[i][j] << "  ";
     }
     std::cout << '\n';
   }

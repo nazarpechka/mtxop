@@ -78,6 +78,24 @@ const Matrix &Matrix::operator=(const FPTYPE diagonal) {
   return *this;
 }
 
+bool Matrix::operator==(const Matrix &other) const {
+  if (m_row_cnt != other.m_row_cnt || m_col_cnt != other.m_col_cnt)
+    return false;
+
+  if (this != &other) {
+    int tmp_idx;
+    for (int i = 0; i < m_row_cnt; ++i) {
+      for (int j = 0; j < m_col_cnt; ++j) {
+        tmp_idx = i * m_col_cnt + j;
+        if (abs(m_array[tmp_idx] - other.m_array[tmp_idx]) > ALG_PRECISION)
+          return false;
+      }
+    }
+  }
+
+  return true;
+}
+
 Matrix Matrix::operator+(const Matrix &other) const {
   // TODO: Check size, should be the same
 
@@ -123,30 +141,50 @@ Matrix Matrix::operator-() const {
 }
 
 Matrix Matrix::operator*(const Matrix &other) const {
-  // TODO: Check size
+  if (m_col_cnt != other.m_row_cnt) {
+    std::cout << "YOU VIOLATED THE LAW!\n";
+    return Matrix(0, 0, false);
+  }
+
   Matrix res(m_row_cnt, other.m_col_cnt, false);
 
 #if MULTITHREAD
+  int portion = ceil(m_row_cnt / 4.0f);
+  // std::cout << "portion = " << portion << '\n';
 
-  std::thread t1([&] { multiplyThreaded(res, other, 0); });
-  std::thread t2([&] { multiplyThreaded(res, other, 1); });
-  std::thread t3([&] { multiplyThreaded(res, other, 2); });
-  multiplyThreaded(res, other, 3);
+  // std::cout << "Thread 1 start = " << 0 << ", end = " << portion << '\n';
+  // std::cout << "Thread 2 start = " << portion << ", end = " << 2 * portion
+  //           << '\n';
+  // std::cout << "Thread 3 start = " << 2 * portion << ", end = " << 3 *
+  // portion
+  //           << '\n';
+  // std::cout << "Thread 4 start = " << 3 * portion << ", end = " << m_row_cnt
+  //           << '\n';
+
+  std::thread t1([&] { multiplyThreaded(res, other, 0, portion); });
+  std::thread t2([&] { multiplyThreaded(res, other, portion, 2 * portion); });
+  std::thread t3(
+      [&] { multiplyThreaded(res, other, 2 * portion, 3 * portion); });
+  multiplyThreaded(res, other, 3 * portion, m_row_cnt);
   t1.join();
   t2.join();
   t3.join();
 
 #else
   FPTYPE sum = 0;
-  for (int row = 0; row < m_row_cnt; ++row) {
-    for (int col = 0; col < other.m_col_cnt; ++col) {
+  const int row_cnt = m_row_cnt;
+  const int col_cnt = m_col_cnt;
+  const int other_col_cnt = other.m_col_cnt;
+
+  for (int row = 0; row < row_cnt; ++row) {
+    for (int col = 0; col < other_col_cnt; ++col) {
       sum = 0;
-      for (int pos = 0; pos < m_col_cnt; ++pos) {
-        sum += m_array[row * m_col_cnt + pos] *
-               other.m_array[pos * other.m_col_cnt + col];
+      for (int pos = 0; pos < col_cnt; ++pos) {
+        sum += m_array[row * col_cnt + pos] *
+               other.m_array[pos * other_col_cnt + col];
       }
 
-      res.m_array[row * other.m_col_cnt + col] = sum;
+      res.m_array[row * other_col_cnt + col] = sum;
     }
   }
 
@@ -215,46 +253,31 @@ int Matrix::getRowCount() const { return m_row_cnt; }
 
 int Matrix::getColCount() const { return m_col_cnt; }
 
-bool Matrix::operator==(const Matrix &other) const {
-  if (m_row_cnt != other.m_row_cnt || m_col_cnt != other.m_col_cnt)
-    return false;
-
-  if (this != &other) {
-    int tmp_idx;
-    for (int i = 0; i < m_row_cnt; ++i) {
-      for (int j = 0; j < m_col_cnt; ++j) {
-        tmp_idx = i * m_col_cnt + j;
-        if (abs(m_array[tmp_idx] - other.m_array[tmp_idx]) > ALG_PRECISION)
-          return false;
-      }
-    }
-  }
-
-  return true;
-}
-
 void Matrix::display() const {
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
-      std::cout << m_array[i * m_col_cnt + j] << " ";
+      std::cout << m_array[i * m_col_cnt + j] << "  ";
     }
     std::cout << '\n';
   }
   std::cout << '\n';
 }
 
-void Matrix::multiplyThreaded(const Matrix &res, const Matrix &other,
-                              int start) const {
+void Matrix::multiplyThreaded(const Matrix &res, const Matrix &other, int start,
+                              int end) const {
   FPTYPE sum = 0;
-  for (int row = start; row < m_row_cnt; row += 4) {
-    for (int col = 0; col < other.m_col_cnt; ++col) {
+  const int col_cnt = m_col_cnt;
+  const int other_col_cnt = other.m_col_cnt;
+
+  for (int row = start; row < end; ++row) {
+    for (int col = 0; col < other_col_cnt; ++col) {
       sum = 0;
-      for (int pos = 0; pos < m_col_cnt; ++pos) {
-        sum += m_array[row * m_col_cnt + pos] *
-               other.m_array[pos * other.m_col_cnt + col];
+      for (int pos = 0; pos < col_cnt; ++pos) {
+        sum += m_array[row * col_cnt + pos] *
+               other.m_array[pos * other_col_cnt + col];
       }
 
-      res.m_array[row * other.m_col_cnt + col] = sum;
+      res.m_array[row * other_col_cnt + col] = sum;
     }
   }
 }

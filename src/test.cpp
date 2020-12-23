@@ -1,10 +1,6 @@
 // Precompiled headers - don't use them
 // #include "stdafx.h"
 
-#include "matrix.h"
-#include "vector.h"
-
-// Reference implementation
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +8,10 @@
 #include <iostream>
 #include <string>
 
+#include "matrix.h"
+#include "vector.h"
+
+// Reference implementation
 #include "matrix_ref.h"
 #include "vector_ref.h"
 
@@ -53,7 +53,8 @@ bool operator==(RefAlgebra::Matrix &first, MyAlgebra::Matrix &second) {
 
   for (int i = 0; i < first.getRowCount(); ++i) {
     for (int j = 0; j < first.getColCount(); ++j) {
-      if (abs(first[i][j] - second[i][j]) > 10e-6) return false;
+      if (abs(first[i][j] - second[i][j]) > RefAlgebra::Matrix::ALG_PRECISION)
+        return false;
     }
   }
 
@@ -88,34 +89,74 @@ double speedTest() {
 }
 
 template <typename T>
+// Check if operations are performed correctly
 void accuracyTest() {
-  // Check if operations are performed correctly
-  const int ROW_CNT = 500;
-  const int COL_CNT = 500;
+  uint32_t rand_time = time(NULL);
+  srand(rand_time);
+  const int FIRST_ROW_CNT = rand() % 1000 + 1;
+  const int FIRST_COL_CNT = rand() % 1000 + 1;
+  const int SECOND_ROW_CNT = FIRST_COL_CNT;
+  const int SECOND_COL_CNT = rand() % 1000 + 1;
 
-  srand(123);
-  RefAlgebra::Matrix first_ref(ROW_CNT, COL_CNT, true);
-  RefAlgebra::Matrix second_ref(ROW_CNT, COL_CNT, true);
+  std::cout << "Accuracy test started\n";
+  std::cout << "Creating first_sq  = " << FIRST_ROW_CNT << "x" << FIRST_ROW_CNT
+            << '\n';
+  std::cout << "         second_sq = " << FIRST_ROW_CNT << "x" << FIRST_ROW_CNT
+            << '\n';
+  std::cout << "         first     = " << FIRST_ROW_CNT << "x" << FIRST_COL_CNT
+            << '\n';
+  std::cout << "         second    = " << SECOND_ROW_CNT << "x"
+            << SECOND_COL_CNT << '\n';
 
-  srand(123);
-  T first(ROW_CNT, COL_CNT, true);
-  T second(ROW_CNT, COL_CNT, true);
+  srand(rand_time);
+  RefAlgebra::Matrix first_sq_ref(FIRST_ROW_CNT, FIRST_ROW_CNT, true);
+  RefAlgebra::Matrix second_sq_ref(FIRST_ROW_CNT, FIRST_ROW_CNT, true);
+
+  RefAlgebra::Matrix first_ref(FIRST_ROW_CNT, FIRST_COL_CNT, true);
+  RefAlgebra::Matrix second_ref(SECOND_ROW_CNT, SECOND_COL_CNT, true);
+
+  srand(rand_time);
+  T first_sq(FIRST_ROW_CNT, FIRST_ROW_CNT, true);
+  T second_sq(FIRST_ROW_CNT, FIRST_ROW_CNT, true);
+
+  T first(FIRST_ROW_CNT, FIRST_COL_CNT, true);
+  T second(SECOND_ROW_CNT, SECOND_COL_CNT, true);
 
   std::cout << std::boolalpha;
 
   std::cout << "Equality test:\n";
+  std::cout << (first_sq_ref == first_sq) << "\n";
+  std::cout << (second_sq_ref == second_sq) << "\n";
+
   std::cout << (first_ref == first) << "\n";
   std::cout << (second_ref == second) << "\n";
 
   std::cout << "Multiplication test:\n";
+
+  RefAlgebra::Matrix mult_sq_ref(first_sq_ref * second_sq_ref);
+  T mult_sq(first_sq * second_sq);
+  std::cout << (mult_sq_ref == mult_sq) << "\n";
+
+  RefAlgebra::Matrix mult_sq_ref_rev(second_sq_ref * first_sq_ref);
+  T mult_sq_rev(second_sq * first_sq);
+  std::cout << (mult_sq_ref_rev == mult_sq_rev) << "\n";
+
   RefAlgebra::Matrix mult_ref(first_ref * second_ref);
   T mult(first * second);
   std::cout << (mult_ref == mult) << "\n";
 
+  // RefAlgebra::Matrix mult_ref_rev((~second_ref) * first_ref);
+  // T mult_rev((~second) * first);
+  // std::cout << (mult_ref_rev == mult_rev) << "\n";
+
   std::cout << "Addition test:\n";
-  RefAlgebra::Matrix add_ref(first_ref + second_ref);
-  T add(first + second);
+  RefAlgebra::Matrix add_ref(first_sq_ref + second_sq_ref);
+  T add(first_sq + second_sq);
   std::cout << (add_ref == add) << "\n";
+
+  RefAlgebra::Matrix add_ref_rev(second_sq_ref + first_sq_ref);
+  T add_rev(second_sq + first_sq);
+  std::cout << (add_ref_rev == add_rev) << "\n";
 
   return;
 }
@@ -134,7 +175,7 @@ int main(void) {
   printf("Czas wykonania testowany:    %7.2lfs\n", t_prog);
 
   double t_ref = 0;
-#if 0
+#if 1
   for (int i = 0; i < TEST_AMOUNT; ++i) {
     t_ref += speedTest<RefAlgebra::Matrix>();
   }

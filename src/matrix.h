@@ -45,6 +45,9 @@ class Matrix {
   // OPERACJE ALGEBRAICZNE
   // =========================================================================
 
+  // Porownywanie macierzy z dokładnoscią do stałej ALG_PRECISION
+  bool operator==(const Matrix &other) const;
+
   Matrix operator+(const Matrix &other) const;
 
   Matrix operator-(const Matrix &other) const;
@@ -79,14 +82,11 @@ class Matrix {
   int getRowCount() const;
   int getColCount() const;
 
-  // Porownywanie macierzy z dokładnoscią do stałej ALG_PRECISION
-  bool operator==(const Matrix &other) const;
-
   // Tylko do celow testowych - wypisuje macierz wierszami na stdout
   void display() const;
 
-  void multiplyThreaded(const Matrix &res, const Matrix &other,
-                        int start) const;
+  void multiplyThreaded(const Matrix &res, const Matrix &other, int start,
+                        int end) const;
 
   // friend Matrix operator*( FPTYPE multiplier, const Matrix &other );
 

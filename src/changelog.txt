@@ -1,5 +1,6 @@
 Changelog for matrix operations optimization:
 Testing - iter=1000, dim=100, tests=50, O3 compiler option
+Multithreaded Eigen is 0.16sec, this is the best possible result (Q=14.52)
 
 v0.1 - Reference implementation (RefAlgebra namespace) - 2.35sec (Q=1.0)
 v0.2 - Pseudo 2d array                                 - 2.03sec (Q=1.15)

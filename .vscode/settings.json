@@ -74,6 +74,7 @@
         "ranges": "cpp",
         "stop_token": "cpp",
         "cinttypes": "cpp",
-        "__cxx_version": "cpp"
+        "__cxx_version": "cpp",
+        "list": "cpp"
     }
 }
