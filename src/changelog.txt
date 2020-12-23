@@ -1,8 +1,20 @@
 Changelog for matrix operations optimization:
-Testing - iter=1000, dim=100, tests=50, O3 compiler option
+
+-> speedTest() iter=1000, size=100, tests=50 - different operations:
+
+Reference (RefAlgebra)                                  - 2.35sec (Q=1.0)
+Pseudo 2d array                                         - 1.93sec (Q=1.21)
+Pseudo 2d array + multithreading                        - 0.70sec (Q=3.38)
+Reference + different loop order                        - 0.68sec (Q=3.45)
+Pseudo 2d array + different loop order                  - 0.42sec (Q=5.60)
+Pseudo 2d array + different loop order + multithreading - 0.23sec (Q=10.06)
 Multithreaded Eigen is 0.16sec, this is the best possible result (Q=14.52)
 
-v0.1 - Reference implementation (RefAlgebra namespace) - 2.35sec (Q=1.0)
-v0.2 - Pseudo 2d array                                 - 2.03sec (Q=1.15)
-v0.3 - Multithreading (4 threads)                      - 0.73sec (Q=3.22)
+-> multSpeedTest() iter=10, size=1024, tests=25 - multiplication:
 
+Reference (RefAlgebra)                                  - 31.89sec (Q=1.0)
+Pseudo 2d array                                         - 27.48sec (Q=1.16)
+Pseudo 2d array + multithreading                        - 7.57sec  (Q=4.22)
+Pseudo 2d array + different loop order                  - 4.37sec  (Q=7.30)
+Reference + different loop order                        - 4.11sec  (Q=7.75)
+Pseudo 2d array + different loop order + multithreading - 1.19sec  (Q=26.77)

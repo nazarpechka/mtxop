@@ -18,8 +18,14 @@ Matrix::Matrix(size_t row_cnt, size_t col_cnt, bool rand_init)
   if (rand_init) {
     for (int i = 0; i < m_row_cnt; ++i) {
       for (int j = 0; j < m_col_cnt; ++j) {
-        m_array[i][j] = rand();
+        m_array[i][j] =
+            static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
       }
+    }
+  } else {
+    // Initialize with zeros
+    for (int i = 0; i < m_row_cnt; ++i) {
+      memset(m_array[i], 0, sizeof(FPTYPE) * m_col_cnt);
     }
   }
 }
@@ -28,13 +34,8 @@ Matrix::Matrix(size_t row_cnt, FPTYPE diagonal)
     : m_row_cnt(row_cnt), m_col_cnt(row_cnt), m_array(new FPTYPE *[m_row_cnt]) {
   for (int i = 0; i < m_row_cnt; ++i) {
     m_array[i] = new FPTYPE[m_row_cnt];
-
-    for (int j = 0; j < m_row_cnt; ++j) {
-      if (i != j)
-        m_array[i][j] = 0;
-      else
-        m_array[i][j] = diagonal;
-    }
+    memset(m_array[i], 0, sizeof(FPTYPE) * m_row_cnt);
+    m_array[i][i] = diagonal;
   }
 }
 

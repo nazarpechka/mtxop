@@ -75,6 +75,7 @@
         "stop_token": "cpp",
         "cinttypes": "cpp",
         "__cxx_version": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "iomanip": "cpp"
     }
 }

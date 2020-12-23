@@ -7,6 +7,7 @@
 #include <thread>
 
 #define MULTITHREAD 1
+#define CHANGE_LOOPS_ORDER 1
 
 namespace MyAlgebra {
 
@@ -19,9 +20,13 @@ Matrix::Matrix(size_t row_cnt, size_t col_cnt, bool rand_init)
   if (rand_init) {
     for (int i = 0; i < m_row_cnt; ++i) {
       for (int j = 0; j < m_col_cnt; ++j) {
-        m_array[i * m_col_cnt + j] = rand();
+        m_array[i * m_col_cnt + j] =
+            static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
       }
     }
+  } else {
+    // Initialize with zeros
+    memset(m_array, 0, sizeof(FPTYPE) * m_row_cnt * m_col_cnt);
   }
 }
 
@@ -29,13 +34,10 @@ Matrix::Matrix(size_t row_cnt, FPTYPE diagonal)
     : m_row_cnt(row_cnt),
       m_col_cnt(row_cnt),
       m_array(new FPTYPE[m_row_cnt * m_row_cnt]) {
+  memset(m_array, 0, sizeof(FPTYPE) * m_row_cnt * m_col_cnt);
+
   for (int i = 0; i < m_row_cnt; ++i) {
-    for (int j = 0; j < m_row_cnt; ++j) {
-      if (i != j)
-        m_array[i * m_col_cnt + j] = 0;
-      else
-        m_array[i * m_col_cnt + j] = diagonal;
-    }
+    m_array[i * m_col_cnt + i] = diagonal;
   }
 }
 
@@ -176,6 +178,20 @@ Matrix Matrix::operator*(const Matrix &other) const {
   const int col_cnt = m_col_cnt;
   const int other_col_cnt = other.m_col_cnt;
 
+#if CHANGE_LOOPS_ORDER
+
+  for (int row = 0; row < row_cnt; ++row) {
+    for (int pos = 0; pos < col_cnt; ++pos) {
+      sum = 0;
+      for (int col = 0; col < other_col_cnt; ++col) {
+        res.m_array[row * other_col_cnt + col] +=
+            m_array[row * col_cnt + pos] *
+            other.m_array[pos * other_col_cnt + col];
+      }
+    }
+  }
+
+#else
   for (int row = 0; row < row_cnt; ++row) {
     for (int col = 0; col < other_col_cnt; ++col) {
       sum = 0;
@@ -187,6 +203,8 @@ Matrix Matrix::operator*(const Matrix &other) const {
       res.m_array[row * other_col_cnt + col] = sum;
     }
   }
+
+#endif
 
 #endif
 
@@ -268,7 +286,19 @@ void Matrix::multiplyThreaded(const Matrix &res, const Matrix &other, int start,
   FPTYPE sum = 0;
   const int col_cnt = m_col_cnt;
   const int other_col_cnt = other.m_col_cnt;
+#if CHANGE_LOOPS_ORDER
+  for (int row = start; row < end; ++row) {
+    for (int pos = 0; pos < col_cnt; ++pos) {
+      sum = 0;
+      for (int col = 0; col < other_col_cnt; ++col) {
+        res.m_array[row * other_col_cnt + col] +=
+            m_array[row * col_cnt + pos] *
+            other.m_array[pos * other_col_cnt + col];
+      }
+    }
+  }
 
+#else
   for (int row = start; row < end; ++row) {
     for (int col = 0; col < other_col_cnt; ++col) {
       sum = 0;
@@ -280,6 +310,8 @@ void Matrix::multiplyThreaded(const Matrix &res, const Matrix &other, int start,
       res.m_array[row * other_col_cnt + col] = sum;
     }
   }
+
+#endif
 }
 
 void Matrix::copy(const Matrix &other) {
