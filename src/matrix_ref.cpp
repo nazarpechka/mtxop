@@ -1,7 +1,6 @@
 #include "matrix_ref.h"
 
-#include <math.h>
-
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 
@@ -78,12 +77,10 @@ const Matrix &Matrix::operator=(Matrix &&other) {
 
 const Matrix &Matrix::operator=(const FPTYPE diagonal) {
   for (int i = 0; i < m_row_cnt; ++i) {
-    for (int j = 0; j < m_col_cnt; ++j) {
-      if (i != j)
-        m_array[i][j] = 0;
-      else
-        m_array[i][j] = diagonal;
-    }
+    memset(m_array[i], 0, sizeof(FPTYPE) * m_row_cnt);
+  }
+  for (int i = 0; i < m_row_cnt; ++i) {
+    m_array[i][i] = diagonal;
   }
 
   return *this;
@@ -96,7 +93,7 @@ bool Matrix::operator==(const Matrix &other) const {
 
     for (int i = 0; i < m_row_cnt; ++i) {
       for (int j = 0; j < m_col_cnt; ++j) {
-        if (abs(m_array[i][j] - other.m_array[i][j]) > ALG_PRECISION)
+        if (std::abs(m_array[i][j] - other.m_array[i][j]) > ALG_PRECISION)
           return false;
       }
     }
@@ -106,7 +103,8 @@ bool Matrix::operator==(const Matrix &other) const {
 }
 
 Matrix Matrix::operator+(const Matrix &other) const {
-  // TODO: Check size, should be the same
+  if (m_row_cnt != other.m_row_cnt || m_col_cnt != other.m_col_cnt)
+    return Matrix(0, 0, false);
 
   Matrix res(m_row_cnt, m_col_cnt, false);
 
@@ -120,7 +118,8 @@ Matrix Matrix::operator+(const Matrix &other) const {
 }
 
 Matrix Matrix::operator-(const Matrix &other) const {
-  // TODO: Check size, should be the same
+  if (m_row_cnt != other.m_row_cnt || m_col_cnt != other.m_col_cnt)
+    return Matrix(0, 0, false);
 
   Matrix res(m_row_cnt, m_col_cnt, false);
 
@@ -138,7 +137,6 @@ Matrix Matrix::operator-() const {
 
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
-      // TODO: Change for other types
       res.m_array[i][j] = m_array[i][j] * -1;
     }
   }
@@ -147,7 +145,8 @@ Matrix Matrix::operator-() const {
 }
 
 Matrix Matrix::operator*(const Matrix &other) const {
-  // TODO: Check size
+  if (m_col_cnt != other.m_row_cnt) return Matrix(0, 0, false);
+
   Matrix res(m_row_cnt, other.m_col_cnt, false);
 
   FPTYPE sum = 0;

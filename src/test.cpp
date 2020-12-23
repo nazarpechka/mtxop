@@ -5,10 +5,10 @@
 #define SELF_TEST 0
 #define BENCHMARK 1
 
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <string>

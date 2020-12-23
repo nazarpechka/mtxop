@@ -1,7 +1,6 @@
 #include "matrix.h"
 
-#include <math.h>
-
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <thread>
@@ -68,28 +67,25 @@ const Matrix &Matrix::operator=(Matrix &&other) {
 }
 
 const Matrix &Matrix::operator=(const FPTYPE diagonal) {
+  memset(m_array, 0, sizeof(FPTYPE) * m_row_cnt * m_col_cnt);
+
   for (int i = 0; i < m_row_cnt; ++i) {
-    for (int j = 0; j < m_col_cnt; ++j) {
-      if (i != j)
-        m_array[i * m_col_cnt + j] = 0;
-      else
-        m_array[i * m_col_cnt + j] = diagonal;
-    }
+    m_array[i * m_col_cnt + i] = diagonal;
   }
 
   return *this;
 }
 
 bool Matrix::operator==(const Matrix &other) const {
-  if (m_row_cnt != other.m_row_cnt || m_col_cnt != other.m_col_cnt)
-    return false;
-
   if (this != &other) {
+    if (m_row_cnt != other.m_row_cnt || m_col_cnt != other.m_col_cnt)
+      return false;
+
     int tmp_idx;
     for (int i = 0; i < m_row_cnt; ++i) {
       for (int j = 0; j < m_col_cnt; ++j) {
         tmp_idx = i * m_col_cnt + j;
-        if (abs(m_array[tmp_idx] - other.m_array[tmp_idx]) > ALG_PRECISION)
+        if (std::abs(m_array[tmp_idx] - other.m_array[tmp_idx]) > ALG_PRECISION)
           return false;
       }
     }
@@ -99,9 +95,11 @@ bool Matrix::operator==(const Matrix &other) const {
 }
 
 Matrix Matrix::operator+(const Matrix &other) const {
-  // TODO: Check size, should be the same
+  if (m_row_cnt != other.m_row_cnt || m_col_cnt != other.m_col_cnt)
+    return Matrix(0, 0, false);
 
   Matrix res(m_row_cnt, m_col_cnt, false);
+
   int tmp_idx;
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
@@ -114,7 +112,8 @@ Matrix Matrix::operator+(const Matrix &other) const {
 }
 
 Matrix Matrix::operator-(const Matrix &other) const {
-  // TODO: Check size, should be the same
+  if (m_row_cnt != other.m_row_cnt || m_col_cnt != other.m_col_cnt)
+    return Matrix(0, 0, false);
 
   Matrix res(m_row_cnt, m_col_cnt, false);
 
@@ -131,6 +130,7 @@ Matrix Matrix::operator-(const Matrix &other) const {
 
 Matrix Matrix::operator-() const {
   Matrix res(m_row_cnt, m_col_cnt, false);
+
   int tmp_idx;
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
@@ -143,10 +143,7 @@ Matrix Matrix::operator-() const {
 }
 
 Matrix Matrix::operator*(const Matrix &other) const {
-  if (m_col_cnt != other.m_row_cnt) {
-    std::cout << "YOU VIOLATED THE LAW!\n";
-    return Matrix(0, 0, false);
-  }
+  if (m_col_cnt != other.m_row_cnt) return Matrix(0, 0, false);
 
   Matrix res(m_row_cnt, other.m_col_cnt, false);
 
@@ -214,6 +211,7 @@ Vector Matrix::operator*(const Vector &other) const {}
 
 Matrix Matrix::operator*(FPTYPE multiplier) const {
   Matrix res(m_row_cnt, m_col_cnt, false);
+
   int tmp_idx;
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
@@ -282,13 +280,11 @@ void Matrix::display() const {
 
 void Matrix::multiplyThreaded(const Matrix &res, const Matrix &other, int start,
                               int end) const {
-  FPTYPE sum = 0;
   const int col_cnt = m_col_cnt;
   const int other_col_cnt = other.m_col_cnt;
 #if CHANGE_LOOPS_ORDER
   for (int row = start; row < end; ++row) {
     for (int pos = 0; pos < col_cnt; ++pos) {
-      sum = 0;
       for (int col = 0; col < other_col_cnt; ++col) {
         res.m_array[row * other_col_cnt + col] +=
             m_array[row * col_cnt + pos] *
@@ -298,6 +294,7 @@ void Matrix::multiplyThreaded(const Matrix &res, const Matrix &other, int start,
   }
 
 #else
+  FPTYPE sum = 0;
   for (int row = start; row < end; ++row) {
     for (int col = 0; col < other_col_cnt; ++col) {
       sum = 0;
@@ -316,9 +313,9 @@ void Matrix::multiplyThreaded(const Matrix &res, const Matrix &other, int start,
 void Matrix::copy(const Matrix &other) {
   m_row_cnt = other.m_row_cnt;
   m_col_cnt = other.m_col_cnt;
-
-  uint32_t size = m_row_cnt * m_col_cnt;
+  const uint32_t size = m_row_cnt * m_col_cnt;
   m_array = new FPTYPE[size];
+
   memcpy(m_array, other.m_array, sizeof(FPTYPE) * size);
 }
 
