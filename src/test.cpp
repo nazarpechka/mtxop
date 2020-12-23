@@ -1,7 +1,9 @@
 // Precompiled headers - don't use them
 // #include "stdafx.h"
 
-#define USE_EIGEN 0
+#define USE_EIGEN 1
+#define SELF_TEST 0
+#define BENCHMARK 1
 
 #include <math.h>
 #include <stdio.h>
@@ -95,7 +97,7 @@ double speedTest() {
   // Przykładowe testowe obliczenie macierzowe. Podobne obliczenia będą
   // uzywane do oceny efektywnosci implementacji w konkursie.
   srand(time(0));
-  const int SIZE = 10;
+  const int SIZE = 100;
   const int ITER_CNT = 1000;
 
   T A(SIZE, SIZE, true);
@@ -119,7 +121,7 @@ double speedTest() {
 template <typename T>
 double multSpeedTest() {
   // Przykładowe testowe obliczenie macierzowe na mnozenie.
-  srand(time(NULL));
+  srand(time(0));
   const int SIZE = 1024;
   const int ITER_CNT = 10;
 
@@ -140,16 +142,16 @@ double multSpeedTest() {
 }
 
 template <typename T>
-// Check if operations are performed correctly
-void selfTest() {
-  uint32_t rand_time = time(0);
+void selfTestGeneral() {
+  const uint32_t rand_time = time(0);
+
   srand(rand_time);
   const int FIRST_ROW_CNT = rand() % 1000 + 1;
   const int FIRST_COL_CNT = rand() % 1000 + 1;
   const int SECOND_ROW_CNT = FIRST_COL_CNT;
   const int SECOND_COL_CNT = rand() % 1000 + 1;
 
-  std::cout << "Accuracy test started\n";
+  std::cout << "General self test started\n";
   std::cout << "Creating first_sq  = " << FIRST_ROW_CNT << "x" << FIRST_ROW_CNT
             << '\n';
   std::cout << "         second_sq = " << FIRST_ROW_CNT << "x" << FIRST_ROW_CNT
@@ -205,8 +207,15 @@ void selfTest() {
   T add_rev(second_sq + first_sq);
   std::cout << (add_ref_rev == add_rev) << "\n";
 
-  std::cout << "speedTest() accuracy test:\n";
-  const int SIZE = 10;
+  return;
+}
+
+template <typename T>
+void selfTestSpeedTest() {
+  const uint32_t rand_time = time(0);
+  std::cout << "\nspeedTest() test started\n";
+
+  const int SIZE = 100;
   const int ITER_CNT = 1000;
 
   srand(rand_time);
@@ -223,6 +232,7 @@ void selfTest() {
   Eigen::MatrixXd A_e(SIZE, SIZE);
   Eigen::MatrixXd B_e(SIZE, SIZE);
   Eigen::MatrixXd W_e(1, 1);
+  W_e << 0;
 
   for (int i = 0; i < SIZE; ++i) {
     for (int j = 0; j < SIZE; ++j) {
@@ -230,6 +240,7 @@ void selfTest() {
       B_e(i, j) = B_ref[i][j];
     }
   }
+
 #endif
 
   if (A_ref == A && B_ref == B && W_ref == W
@@ -239,7 +250,16 @@ void selfTest() {
   ) {
     std::cout << "Input matrices are identical\n";
   } else {
-    std::cout << "Input matrices are NOT identical\n";
+    std::cout << "Input matrices are NOT identical, see differences:\n";
+    std::cout << "A_ref == A: " << (A_ref == A) << '\n';
+    std::cout << "B_ref == B: " << (B_ref == B) << '\n';
+    std::cout << "W_ref == W: " << (W_ref == W) << '\n';
+#if USE_EIGEN
+    std::cout << "A_ref == A_e: " << (A_ref == A_e) << '\n';
+    std::cout << "B_ref == B_e: " << (B_ref == B_e) << '\n';
+    std::cout << "W_ref == W_e: " << (W_ref == W_e) << '\n';
+
+#endif
   }
 
   for (int i = 0; i < ITER_CNT; i++) {
@@ -286,12 +306,21 @@ void selfTest() {
   return;
 }
 
-int main(void) {
-  selfTest<MyAlgebra::Matrix>();
+template <typename T>
+// Check if operations are performed correctly
+void selfTest() {
+  selfTestGeneral<T>();
+  selfTestSpeedTest<T>();
+}
 
-#if 0
-  std::cout << "Matrix operations testing\n";
-  const int TEST_AMOUNT = 1;
+int main(void) {
+#if SELF_TEST
+  selfTest<MyAlgebra::Matrix>();
+#endif
+
+#if BENCHMARK
+  std::cout << "\nMatrix operations benchmark\n";
+  const int TEST_AMOUNT = 15;
 
   double t_prog = 0;
   for (int i = 0; i < TEST_AMOUNT; ++i) {
@@ -303,7 +332,7 @@ int main(void) {
   printf("Czas wykonania testowany:    %7.2lfs\n", t_prog);
 
   double t_ref = 0;
-#if 1
+#if 0
   for (int i = 0; i < TEST_AMOUNT; ++i) {
     t_ref += speedTest<RefAlgebra::Matrix>();
     std::cout << "Test #" << i + 1 << std::endl;
@@ -315,31 +344,7 @@ int main(void) {
 #endif
 
   printf("Czas wykonania referencyjny: %7.2lfs\n", t_ref);
-
   printf("Wspolczynnik przyspieszenia Q: %5.2lf\n", t_ref / t_prog);
 
-#endif
-
-#if 0
-
-  std::string command;
-  while (command != "q") {
-    std::cout << "> ";
-    std::cin >> command;
-    if (command == "test") {
-      int size, iter;
-      std::cout << "\tMatrices dimension = ";
-      std::cin >> size;
-      std::cout << "\tAmount of iterations = ";
-      std::cin >> iter;
-
-      double t_prog = test<MyAlgebra::Matrix>(size, iter);
-      printf("\tExecution time:    %7.2lfs\n", t_prog);
-    } else if (command == "q") {
-      std::cout << "Goodbye!\n";
-    } else {
-      std::cout << "Unknown command!\n";
-    }
-  }
 #endif
 }

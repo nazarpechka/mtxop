@@ -182,7 +182,6 @@ Matrix Matrix::operator*(const Matrix &other) const {
 
   for (int row = 0; row < row_cnt; ++row) {
     for (int pos = 0; pos < col_cnt; ++pos) {
-      sum = 0;
       for (int col = 0; col < other_col_cnt; ++col) {
         res.m_array[row * other_col_cnt + col] +=
             m_array[row * col_cnt + pos] *
