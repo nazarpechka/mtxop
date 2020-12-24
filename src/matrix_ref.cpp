@@ -19,6 +19,7 @@ Matrix::Matrix(size_t row_cnt, size_t col_cnt, bool rand_init)
       for (int j = 0; j < m_col_cnt; ++j) {
         m_array[i][j] =
             static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        // m_array[i][j] = rand() % 10;
       }
     }
   } else {
@@ -184,7 +185,7 @@ Matrix Matrix::operator~() const {
 
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
-      res.m_array[i][j] = m_array[j][i];
+      res.m_array[j][i] = m_array[i][j];
     }
   }
 

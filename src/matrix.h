@@ -85,8 +85,8 @@ class Matrix {
   // Tylko do celow testowych - wypisuje macierz wierszami na stdout
   void display() const;
 
-  void multiplyThreaded(const Matrix &res, const Matrix &other, int start,
-                        int end) const;
+  void multiply(const Matrix &res, const Matrix &other, int start,
+                int end) const;
 
   // friend Matrix operator*( FPTYPE multiplier, const Matrix &other );
 

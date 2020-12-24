@@ -5,8 +5,11 @@
 #include <iostream>
 #include <thread>
 
-#define MULTITHREAD 1
-#define CHANGE_LOOPS_ORDER 1
+#define MULTITHREAD 0
+// Possible values TRANSPOSE, SWAP_LOOPS, NAIVE
+#define TRANSPOSE 1
+#define SWAP_LOOPS 0
+#define NAIVE 0
 
 namespace MyAlgebra {
 
@@ -21,6 +24,7 @@ Matrix::Matrix(size_t row_cnt, size_t col_cnt, bool rand_init)
       for (int j = 0; j < m_col_cnt; ++j) {
         m_array[i * m_col_cnt + j] =
             static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        // m_array[i * m_col_cnt + j] = rand() % 10;
       }
     }
   } else {
@@ -159,47 +163,32 @@ Matrix Matrix::operator*(const Matrix &other) const {
   //           << '\n';
   // std::cout << "Thread 4 start = " << 3 * portion << ", end = " << m_row_cnt
   //           << '\n';
-
-  std::thread t1([&] { multiplyThreaded(res, other, 0, portion); });
-  std::thread t2([&] { multiplyThreaded(res, other, portion, 2 * portion); });
+#if TRANSPOSE
+  Matrix other_transposed(~other);
+  std::thread t1([&] { multiply(res, other_transposed, 0, portion); });
+  std::thread t2(
+      [&] { multiply(res, other_transposed, portion, 2 * portion); });
   std::thread t3(
-      [&] { multiplyThreaded(res, other, 2 * portion, 3 * portion); });
-  multiplyThreaded(res, other, 3 * portion, m_row_cnt);
+      [&] { multiply(res, other_transposed, 2 * portion, 3 * portion); });
+  multiply(res, other_transposed, 3 * portion, m_row_cnt);
+#else
+  std::thread t1([&] { multiply(res, other, 0, portion); });
+  std::thread t2([&] { multiply(res, other, portion, 2 * portion); });
+  std::thread t3([&] { multiply(res, other, 2 * portion, 3 * portion); });
+  multiply(res, other, 3 * portion, m_row_cnt);
+#endif
+
   t1.join();
   t2.join();
   t3.join();
 
 #else
-  FPTYPE sum = 0;
-  const int row_cnt = m_row_cnt;
-  const int col_cnt = m_col_cnt;
-  const int other_col_cnt = other.m_col_cnt;
 
-#if CHANGE_LOOPS_ORDER
-
-  for (int row = 0; row < row_cnt; ++row) {
-    for (int pos = 0; pos < col_cnt; ++pos) {
-      for (int col = 0; col < other_col_cnt; ++col) {
-        res.m_array[row * other_col_cnt + col] +=
-            m_array[row * col_cnt + pos] *
-            other.m_array[pos * other_col_cnt + col];
-      }
-    }
-  }
-
+#if TRANSPOSE
+  Matrix other_transposed(~other);
+  multiply(res, other_transposed, 0, m_row_cnt);
 #else
-  for (int row = 0; row < row_cnt; ++row) {
-    for (int col = 0; col < other_col_cnt; ++col) {
-      sum = 0;
-      for (int pos = 0; pos < col_cnt; ++pos) {
-        sum += m_array[row * col_cnt + pos] *
-               other.m_array[pos * other_col_cnt + col];
-      }
-
-      res.m_array[row * other_col_cnt + col] = sum;
-    }
-  }
-
+  multiply(res, other, 0, m_row_cnt);
 #endif
 
 #endif
@@ -228,7 +217,7 @@ Matrix Matrix::operator~() const {
 
   for (int i = 0; i < m_row_cnt; ++i) {
     for (int j = 0; j < m_col_cnt; ++j) {
-      res.m_array[i * m_col_cnt + j] = m_array[j * m_col_cnt + i];
+      res.m_array[j * m_row_cnt + i] = m_array[i * m_col_cnt + j];
     }
   }
 
@@ -278,11 +267,42 @@ void Matrix::display() const {
   std::cout << '\n';
 }
 
-void Matrix::multiplyThreaded(const Matrix &res, const Matrix &other, int start,
-                              int end) const {
+void Matrix::multiply(const Matrix &res, const Matrix &other, int start,
+                      int end) const {
   const int col_cnt = m_col_cnt;
   const int other_col_cnt = other.m_col_cnt;
-#if CHANGE_LOOPS_ORDER
+  const int other_row_cnt = other.m_row_cnt;
+
+#if TRANSPOSE
+  // First transposing other matrix, to move in order over the values
+  // without jumping and cache misses.
+  // 1. Iterate over first matrix rows
+  // 2. Iterate over second matrix rows
+  // 3. Iterate over columns, calculating a dot product
+  //    of first matrix row and second matrix row.
+  // Note: at this point 'other' is already transposed
+
+  FPTYPE sum = 0;
+  for (int row = start; row < end; ++row) {
+    for (int other_row = 0; other_row < other_row_cnt; ++other_row) {
+      sum = 0;
+      for (int col = 0; col < col_cnt; ++col) {
+        sum += m_array[row * col_cnt + col] *
+               other.m_array[other_row * other_col_cnt + col];
+      }
+
+      res.m_array[row * other_row_cnt + other_row] = sum;
+    }
+  }
+
+#elif SWAP_LOOPS
+  // Swapping second and third loop to move over other
+  // matrix columns, not rows (less cache misses)
+  // 1. Iterate over first matrix rows
+  // 2. Iterate over second matrix rows
+  // 3. Iterrate over columns
+  //
+
   for (int row = start; row < end; ++row) {
     for (int pos = 0; pos < col_cnt; ++pos) {
       for (int col = 0; col < other_col_cnt; ++col) {
@@ -293,7 +313,8 @@ void Matrix::multiplyThreaded(const Matrix &res, const Matrix &other, int start,
     }
   }
 
-#else
+#elif NAIVE
+  // Naive multiplication
   FPTYPE sum = 0;
   for (int row = start; row < end; ++row) {
     for (int col = 0; col < other_col_cnt; ++col) {

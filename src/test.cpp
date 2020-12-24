@@ -2,7 +2,7 @@
 // #include "stdafx.h"
 
 #define USE_EIGEN 1
-#define SELF_TEST 0
+#define SELF_TEST 1
 #define BENCHMARK 1
 
 #include <stdio.h>
