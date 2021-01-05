@@ -5,11 +5,9 @@
 #include <iostream>
 #include <thread>
 
-#define MULTITHREAD 0
-// Possible values TRANSPOSE, SWAP_LOOPS, NAIVE
-#define TRANSPOSE 1
-#define SWAP_LOOPS 0
-#define NAIVE 0
+#define MULTITHREAD 1
+#define TRANSPOSE 0
+#define SWAP_LOOPS 1
 
 namespace MyAlgebra {
 
@@ -310,21 +308,6 @@ void Matrix::multiply(const Matrix &res, const Matrix &other, int start,
             m_array[row * col_cnt + pos] *
             other.m_array[pos * other_col_cnt + col];
       }
-    }
-  }
-
-#elif NAIVE
-  // Naive multiplication
-  FPTYPE sum = 0;
-  for (int row = start; row < end; ++row) {
-    for (int col = 0; col < other_col_cnt; ++col) {
-      sum = 0;
-      for (int pos = 0; pos < col_cnt; ++pos) {
-        sum += m_array[row * col_cnt + pos] *
-               other.m_array[pos * other_col_cnt + col];
-      }
-
-      res.m_array[row * other_col_cnt + col] = sum;
     }
   }
 
