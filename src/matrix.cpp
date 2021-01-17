@@ -10,7 +10,7 @@
 
 namespace MyAlgebra {
 
-const float Matrix::ALG_PRECISION = 10e-6;
+const float Matrix::ALG_PRECISION = 10e-6f;
 
 Matrix::Matrix(size_t row_cnt, size_t col_cnt, bool rand_init)
     : m_row_cnt(row_cnt),
@@ -21,7 +21,6 @@ Matrix::Matrix(size_t row_cnt, size_t col_cnt, bool rand_init)
       for (size_t j = 0; j < m_col_cnt; ++j) {
         m_array[i * m_col_cnt + j] =
             static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-        // m_array[i * m_col_cnt + j] = rand() % 10;
       }
     }
   } else {
