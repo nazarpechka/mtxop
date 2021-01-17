@@ -1,28 +1,20 @@
 // Precompiled headers - don't use them
 // #include "stdafx.h"
 
-#define USE_EIGEN 0
-#define SELF_TEST 0
+#define SELF_TEST 1
 #define BENCHMARK 1
 
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 
-#include <cmath>
 #include <iomanip>
 #include <iostream>
-#include <string>
-#include <thread>
 
-#if USE_EIGEN
-#include "Eigen/Dense"
-#endif
+// My implementation
 #include "matrix.h"
-#include "vector.h"
 
 // Reference implementation
 #include "matrix_ref.h"
-#include "vector_ref.h"
 
 // ===================================================================
 // FUNKCJE DO POMIARU CZASU
@@ -35,34 +27,35 @@
 #endif
 
 #include <time.h>
-
 #include <cmath>
 
 // ===================================================================
 // FUNKCJA OCENY CZASU WYKONANIA
 // ===================================================================
 
-double mygettime(void) {
+double mygettime() {
 #ifdef _WIN32
   struct _timeb tb;
   _ftime(&tb);
   return (double)tb.time + (0.001 * (double)tb.millitm);
 #else
   struct timeval tv;
-  if (gettimeofday(&tv, 0) < 0) {
+  if (gettimeofday(&tv, nullptr) < 0) {
     perror("oops");
   }
-  return (double)tv.tv_sec + (0.000001 * (double)tv.tv_usec);
+  return static_cast<double>(tv.tv_sec) +
+         (0.000001 * static_cast<double>(tv.tv_usec));
 #endif
 }
 
+// For testing, compare different matrices
 bool operator==(RefAlgebra::Matrix &first, MyAlgebra::Matrix &second) {
   if (first.getRowCount() != second.getRowCount() ||
       first.getColCount() != second.getColCount())
     return false;
 
-  for (int i = 0; i < first.getRowCount(); ++i) {
-    for (int j = 0; j < first.getColCount(); ++j) {
+  for (size_t i = 0; i < first.getRowCount(); ++i) {
+    for (size_t j = 0; j < first.getColCount(); ++j) {
       if (std::abs(first[i][j] - second[i][j]) >
           RefAlgebra::Matrix::ALG_PRECISION)
         return false;
@@ -71,25 +64,6 @@ bool operator==(RefAlgebra::Matrix &first, MyAlgebra::Matrix &second) {
 
   return true;
 }
-
-#if USE_EIGEN
-bool operator==(RefAlgebra::Matrix &first, Eigen::MatrixXd &second) {
-  if (first.getRowCount() != second.rows() ||
-      first.getColCount() != second.cols())
-    return false;
-
-  for (int i = 0; i < first.getRowCount(); ++i) {
-    for (int j = 0; j < first.getColCount(); ++j) {
-      if (std::abs(first[i][j] - second(i, j)) >
-          RefAlgebra::Matrix::ALG_PRECISION)
-        return false;
-    }
-  }
-
-  return true;
-}
-
-#endif
 
 // Definiujemy szablon aby łatwiej uruchamiać testy dla roznych implementacji
 // klasy. Rozne implementacje będą umieszczone w roznych przestrzeniach nazw.
@@ -107,7 +81,7 @@ double speedTest() {
   double t1 = mygettime();
 
   for (int i = 0; i < ITER_CNT; i++) {
-    B = ((0.1 * i) * A + B * B) * 1.e-4;
+    B = ((0.1 * i) * A + B * B) * 1.e-4f;
     B = -B * ~(A + B);
   }
   W = (B - A);
@@ -147,10 +121,10 @@ void selfTestGeneral() {
   const uint32_t rand_time = time(0);
 
   srand(rand_time);
-  const int FIRST_ROW_CNT = rand() % 1000 + 1;
-  const int FIRST_COL_CNT = rand() % 1000 + 1;
-  const int SECOND_ROW_CNT = FIRST_COL_CNT;
-  const int SECOND_COL_CNT = rand() % 1000 + 1;
+  const size_t FIRST_ROW_CNT = rand() % 1000 + 1;
+  const size_t FIRST_COL_CNT = rand() % 1000 + 1;
+  const size_t SECOND_ROW_CNT = FIRST_COL_CNT;
+  const size_t SECOND_COL_CNT = rand() % 1000 + 1;
 
   std::cout << "General self test started\n";
   std::cout << "Creating first_sq  = " << FIRST_ROW_CNT << "x" << FIRST_ROW_CNT
@@ -207,8 +181,6 @@ void selfTestGeneral() {
   RefAlgebra::Matrix add_ref_rev(second_sq_ref + first_sq_ref);
   T add_rev(second_sq + first_sq);
   std::cout << (add_ref_rev == add_rev) << "\n";
-
-  return;
 }
 
 template <typename T>
@@ -229,82 +201,37 @@ void selfTestSpeedTest() {
   T B(SIZE, SIZE, true);
   T W(1, 1, false);
 
-#if USE_EIGEN
-  Eigen::MatrixXd A_e(SIZE, SIZE);
-  Eigen::MatrixXd B_e(SIZE, SIZE);
-  Eigen::MatrixXd W_e(1, 1);
-  W_e << 0;
-
-  for (int i = 0; i < SIZE; ++i) {
-    for (int j = 0; j < SIZE; ++j) {
-      A_e(i, j) = A_ref[i][j];
-      B_e(i, j) = B_ref[i][j];
-    }
-  }
-
-#endif
-
-  if (A_ref == A && B_ref == B && W_ref == W
-#if USE_EIGEN
-      && A_ref == A_e && B_ref == B_e && W_ref == W_e
-#endif
-  ) {
+  if (A_ref == A && B_ref == B && W_ref == W) {
     std::cout << "Input matrices are identical\n";
   } else {
     std::cout << "Input matrices are NOT identical, see differences:\n";
     std::cout << "A_ref == A: " << (A_ref == A) << '\n';
     std::cout << "B_ref == B: " << (B_ref == B) << '\n';
     std::cout << "W_ref == W: " << (W_ref == W) << '\n';
-#if USE_EIGEN
-    std::cout << "A_ref == A_e: " << (A_ref == A_e) << '\n';
-    std::cout << "B_ref == B_e: " << (B_ref == B_e) << '\n';
-    std::cout << "W_ref == W_e: " << (W_ref == W_e) << '\n';
-
-#endif
   }
 
   for (int i = 0; i < ITER_CNT; i++) {
-    B_ref = ((0.1 * i) * A_ref + B_ref * B_ref) * 1.e-4;
+    B_ref = ((0.1f * i) * A_ref + B_ref * B_ref) * 1.e-4f;
     B_ref = -B_ref * ~(A_ref + B_ref);
   }
   W_ref = (B_ref - A_ref);
 
   for (int i = 0; i < ITER_CNT; i++) {
-    B = ((0.1 * i) * A + B * B) * 1.e-4;
+    B = ((0.1f * i) * A + B * B) * 1.e-4f;
     B = -B * ~(A + B);
   }
   W = (B - A);
 
-#if USE_EIGEN
-  for (int i = 0; i < ITER_CNT; i++) {
-    B_e = ((0.1 * i) * A_e + B_e * B_e) * 1.e-4;
-    B_e = -B_e * (A_e + B_e).transpose();
-  }
-  W_e = (B_e - A_e);
-#endif
-
-  if (W_ref == W
-#if USE_EIGEN
-      && W_ref == W_e
-#endif
-  ) {
+  if (W_ref == W) {
     std::cout << "Result matrices are identical\n";
 
   } else {
     std::cout << "Result matrices are NOT identical, see differences:\n";
-#if USE_EIGEN
-    std::cout << "W_ref == W_e: " << (W_ref == W_e) << '\n';
-#endif
     std::cout << "W_ref == W: " << (W_ref == W) << '\n';
 
     W_ref.display();
     W.display();
-#if USE_EIGEN
-    std::cout << W_e << '\n';
-#endif
   }
-
-  return;
 }
 
 template <typename T>
@@ -314,18 +241,19 @@ void selfTest() {
   selfTestSpeedTest<T>();
 }
 
-int main(void) {
+int main() {
+
 #if SELF_TEST
   selfTest<MyAlgebra::Matrix>();
 #endif
 
 #if BENCHMARK
   std::cout << "\nMatrix operations benchmark\n";
-  const int TEST_AMOUNT = 15;
+  const int TEST_AMOUNT = 25;
 
   double t_prog = 0;
   for (int i = 0; i < TEST_AMOUNT; ++i) {
-    t_prog += speedTest<MyAlgebra::Matrix>();
+    t_prog += multSpeedTest<MyAlgebra::Matrix>();
     std::cout << "Test #" << i + 1 << std::endl;
   }
   std::cout << '\n';
