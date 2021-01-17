@@ -4,9 +4,9 @@
 #include <iostream>
 #include <thread>
 
-#define MULTITHREAD 1
-#define TRANSPOSE 0
+#define MULTITHREADING 1
 #define SWAP_LOOPS 1
+
 
 namespace MyAlgebra {
 
@@ -100,12 +100,8 @@ Matrix Matrix::operator+(const Matrix &other) const {
 
   Matrix res(m_row_cnt, m_col_cnt, false);
 
-  size_t tmp_idx;
-  for (size_t i = 0; i < m_row_cnt; ++i) {
-    for (size_t j = 0; j < m_col_cnt; ++j) {
-      tmp_idx = i * m_col_cnt + j;
-      res.m_array[tmp_idx] = m_array[tmp_idx] + other.m_array[tmp_idx];
-    }
+  for (size_t i = 0; i < m_row_cnt * m_col_cnt; ++i) {
+    res.m_array[i] = m_array[i] + other.m_array[i];
   }
 
   return res;
@@ -117,12 +113,8 @@ Matrix Matrix::operator-(const Matrix &other) const {
 
   Matrix res(m_row_cnt, m_col_cnt, false);
 
-  size_t tmp_idx;
-  for (size_t i = 0; i < m_row_cnt; ++i) {
-    for (size_t j = 0; j < m_col_cnt; ++j) {
-      tmp_idx = i * m_col_cnt + j;
-      res.m_array[tmp_idx] = m_array[tmp_idx] - other.m_array[tmp_idx];
-    }
+  for (size_t i = 0; i < m_row_cnt * m_col_cnt; ++i) {
+    res.m_array[i] = m_array[i] - other.m_array[i];
   }
 
   return res;
@@ -131,61 +123,33 @@ Matrix Matrix::operator-(const Matrix &other) const {
 Matrix Matrix::operator-() const {
   Matrix res(m_row_cnt, m_col_cnt, false);
 
-  size_t tmp_idx;
-  for (size_t i = 0; i < m_row_cnt; ++i) {
-    for (size_t j = 0; j < m_col_cnt; ++j) {
-      tmp_idx = i * m_col_cnt + j;
-      res.m_array[tmp_idx] = m_array[tmp_idx] * -1;
-    }
+  for (size_t i = 0; i < m_row_cnt * m_col_cnt; ++i) {
+    res.m_array[i] = m_array[i] * -1;
   }
 
   return res;
 }
 
-Matrix Matrix::operator*(const Matrix &other) const {
+Matrix Matrix::operator*(const Matrix &other) {
   if (m_col_cnt != other.m_row_cnt) return Matrix(0, 0, false);
 
   Matrix res(m_row_cnt, other.m_col_cnt, false);
 
-#if MULTITHREAD
+#if MULTITHREADING
   auto portion = static_cast<unsigned int>(ceil(m_row_cnt / 4.0f));
-  // std::cout << "portion = " << portion << '\n';
 
-  // std::cout << "Thread 1 start = " << 0 << ", end = " << portion << '\n';
-  // std::cout << "Thread 2 start = " << portion << ", end = " << 2 * portion
-  //           << '\n';
-  // std::cout << "Thread 3 start = " << 2 * portion << ", end = " << 3 *
-  // portion
-  //           << '\n';
-  // std::cout << "Thread 4 start = " << 3 * portion << ", end = " << m_row_cnt
-  //           << '\n';
-#if TRANSPOSE
-  Matrix other_transposed(~other);
-  std::thread t1([&] { multiply(res, other_transposed, 0, portion); });
-  std::thread t2(
-      [&] { multiply(res, other_transposed, portion, 2 * portion); });
-  std::thread t3(
-      [&] { multiply(res, other_transposed, 2 * portion, 3 * portion); });
-  multiply(res, other_transposed, 3 * portion, m_row_cnt);
-#else
   std::thread t1([&] { multiply(res, other, 0, portion); });
   std::thread t2([&] { multiply(res, other, portion, 2 * portion); });
   std::thread t3([&] { multiply(res, other, 2 * portion, 3 * portion); });
-  multiply(res, other, 3 * portion, m_row_cnt);
-#endif
+  std::thread t4([&] { multiply(res, other, 3 * portion, m_row_cnt); });
 
   t1.join();
   t2.join();
   t3.join();
-
+  t4.join();
 #else
 
-#if TRANSPOSE
-  Matrix other_transposed(~other);
-  multiply(res, other_transposed, 0, m_row_cnt);
-#else
   multiply(res, other, 0, m_row_cnt);
-#endif
 
 #endif
 
@@ -195,12 +159,8 @@ Matrix Matrix::operator*(const Matrix &other) const {
 Matrix Matrix::operator*(float multiplier) const {
   Matrix res(m_row_cnt, m_col_cnt, false);
 
-  size_t tmp_idx;
-  for (size_t i = 0; i < m_row_cnt; ++i) {
-    for (size_t j = 0; j < m_col_cnt; ++j) {
-      tmp_idx = i * m_col_cnt + j;
-      res.m_array[tmp_idx] = m_array[tmp_idx] * multiplier;
-    }
+  for (size_t i = 0; i < m_row_cnt * m_col_cnt; ++i) {
+    res.m_array[i] = m_array[i] * multiplier;
   }
 
   return res;
@@ -269,37 +229,13 @@ void Matrix::multiply(const Matrix &res, const Matrix &other, size_t start,
                       size_t end) const {
   const size_t col_cnt = m_col_cnt;
   const size_t other_col_cnt = other.m_col_cnt;
-  const size_t other_row_cnt = other.m_row_cnt;
 
-#if TRANSPOSE
-  // First transposing other matrix, to move in order over the values
-  // without jumping and cache misses.
-  // 1. Iterate over first matrix rows
-  // 2. Iterate over second matrix rows
-  // 3. Iterate over columns, calculating a dot product
-  //    of first matrix row and second matrix row.
-  // Note: at this point 'other' is already transposed
-
-  float sum = 0;
-  for (size_t row = start; row < end; ++row) {
-    for (size_t other_row = 0; other_row < other_row_cnt; ++other_row) {
-      sum = 0;
-      for (size_t col = 0; col < col_cnt; ++col) {
-        sum += m_array[row * col_cnt + col] *
-               other.m_array[other_row * other_col_cnt + col];
-      }
-
-      res.m_array[row * other_row_cnt + other_row] = sum;
-    }
-  }
-
-#elif SWAP_LOOPS
+#if SWAP_LOOPS
   // Swapping second and third loop to move over other
   // matrix columns, not rows (less cache misses)
   // 1. Iterate over first matrix rows
   // 2. Iterate over second matrix rows
   // 3. Iterate over columns
-  //
 
   for (size_t row = start; row < end; ++row) {
     for (size_t pos = 0; pos < col_cnt; ++pos) {
@@ -311,6 +247,21 @@ void Matrix::multiply(const Matrix &res, const Matrix &other, size_t start,
     }
   }
 
+#else
+  // Naive multiplication
+
+  float sum = 0;
+  for (int row = start; row < end; ++row) {
+    for (int col = 0; col < other_col_cnt; ++col) {
+      sum = 0;
+      for (int pos = 0; pos < col_cnt; ++pos) {
+        sum += m_array[row * col_cnt + pos] *
+               other.m_array[pos * other_col_cnt + col];
+      }
+
+      res.m_array[row * other_col_cnt + col] = sum;
+    }
+  }
 #endif
 }
 

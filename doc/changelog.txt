@@ -1,24 +1,24 @@
 Changelog for matrix operations optimization:
 
 Note: In general transposing second matrix before multiplication is 
-slower than swapping the loops due to the overhead, so its not included.
+slower than swapping the loops due to the overhead of
+creating another matrix, so its not included.
 
 -> speedTest() iter=1000, size=100, tests=30 - swapping operations:
 
-Reference (RefAlgebra)                                  - 2.35sec (Q=1.0) 
-Pseudo 2d array                                         - 1.95sec (Q=1.21)
-Pseudo 2d array + multithreading                        - 0.70sec (Q=3.36) 
-Reference + swapping loops                              - 0.68sec (Q=3.45)
-Pseudo 2d array + swapping loops                        - 0.42sec (Q=5.60) 
-Pseudo 2d array + swapping loops  + multithreading      - 0.26sec (Q=9.01) 
+Reference (RefAlgebra)                                  - 2.23sec (Q=1.0)
+Pseudo 2d array                                         - 1.90sec (Q=1.17)
+Pseudo 2d array + multithreading                        - 0.64sec (Q=3.48)
+Pseudo 2d array + swapping loops                        - 0.30sec (Q=7.43)
+Pseudo 2d array + swapping loops  + multithreading      - 0.20sec (Q=11.15)
 
 Multithreaded Eigen is 0.16sec, this is the best possible result (Q=14.52)
 
 -> multSpeedTest() iter=10, size=1024, tests=25 - multiplication:
 
-Reference (RefAlgebra)                                  - 31.89sec (Q=1.0)
-Pseudo 2d array                                         - 27.48sec (Q=1.16)
-Pseudo 2d array + multithreading                        - 7.57sec  (Q=4.22)
-Reference + swapping loops                              - 4.50sec  (Q=7.09)
-Pseudo 2d array + swapping loops                        - 4.46sec  (Q=7.15)
-Pseudo 2d array + swapping loops + multithreading       - 1.19sec  (Q=26.77)
+Reference (RefAlgebra)                                  - 18.96sec (Q=1.0)
+Pseudo 2d array                                         - 18.61sec (Q=1.01)
+Pseudo 2d array + multithreading                        - 5.06sec  (Q=3.74)
+Pseudo 2d array + swapping loops                        - 1.06sec  (Q=17.88)
+Pseudo 2d array + swapping loops + multithreading       - 0.30sec  (Q=63.2)
+

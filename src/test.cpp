@@ -48,6 +48,10 @@ double mygettime() {
 #endif
 }
 
+// ===================================================================
+// Metody testujące poprawność działań
+// ===================================================================
+
 // For testing, compare different matrices
 bool operator==(RefAlgebra::Matrix &first, MyAlgebra::Matrix &second) {
   if (first.getRowCount() != second.getRowCount() ||
@@ -63,57 +67,6 @@ bool operator==(RefAlgebra::Matrix &first, MyAlgebra::Matrix &second) {
   }
 
   return true;
-}
-
-// Definiujemy szablon aby łatwiej uruchamiać testy dla roznych implementacji
-// klasy. Rozne implementacje będą umieszczone w roznych przestrzeniach nazw.
-template <typename T>
-double speedTest() {
-  // Przykładowe testowe obliczenie macierzowe. Podobne obliczenia będą
-  // uzywane do oceny efektywnosci implementacji w konkursie.
-  srand(time(0));
-  const int SIZE = 100;
-  const int ITER_CNT = 1000;
-
-  T A(SIZE, SIZE, true);
-  T B(SIZE, SIZE, true);
-  T W(1, 1, false);
-  double t1 = mygettime();
-
-  for (int i = 0; i < ITER_CNT; i++) {
-    B = ((0.1 * i) * A + B * B) * 1.e-4f;
-    B = -B * ~(A + B);
-  }
-  W = (B - A);
-
-  double exec_time = mygettime() - t1;
-
-  // W.display();
-
-  return exec_time;
-}
-
-template <typename T>
-double multSpeedTest() {
-  // Przykładowe testowe obliczenie macierzowe na mnozenie.
-  srand(time(0));
-  const int SIZE = 1024;
-  const int ITER_CNT = 10;
-
-  T A(SIZE, SIZE, true);
-  T B(SIZE, SIZE, true);
-  T W(1, 1, false);
-  double t1 = mygettime();
-
-  for (int i = 0; i < ITER_CNT; i++) {
-    W = A * B;
-  }
-
-  double exec_time = mygettime() - t1;
-
-  // W.display();
-
-  return exec_time;
 }
 
 template <typename T>
@@ -241,6 +194,81 @@ void selfTest() {
   selfTestSpeedTest<T>();
 }
 
+// Definiujemy szablon aby łatwiej uruchamiać testy dla roznych implementacji
+// klasy. Rozne implementacje będą umieszczone w roznych przestrzeniach nazw.
+template <typename T>
+double speedTest() {
+  // Przykładowe testowe obliczenie macierzowe. Podobne obliczenia będą
+  // uzywane do oceny efektywnosci implementacji w konkursie.
+  srand(time(0));
+  const int SIZE = 100;
+  const int ITER_CNT = 1000;
+
+  T A(SIZE, SIZE, true);
+  T B(SIZE, SIZE, true);
+  T W(1, 1, false);
+  double t1 = mygettime();
+
+  for (int i = 0; i < ITER_CNT; i++) {
+    B = ((0.1 * i) * A + B * B) * 1.e-4f;
+    B = -B * ~(A + B);
+  }
+  W = (B - A);
+
+  double exec_time = mygettime() - t1;
+
+  // W.display();
+
+  return exec_time;
+}
+
+template <typename T>
+double multSpeedTest() {
+  // Przykładowe testowe obliczenie macierzowe na mnozenie.
+  srand(time(0));
+  const int SIZE = 1024;
+  const int ITER_CNT = 10;
+
+  T A(SIZE, SIZE, true);
+  T B(SIZE, SIZE, true);
+  T W(1, 1, false);
+  double t1 = mygettime();
+
+  for (int i = 0; i < ITER_CNT; i++) {
+    W = A * B;
+  }
+
+  double exec_time = mygettime() - t1;
+
+  // W.display();
+
+  return exec_time;
+}
+
+template <typename T>
+double addSpeedTest() {
+  // Przykładowe testowe obliczenie macierzowe na dodawanie.
+  srand(time(0));
+  const int SIZE = 4096;
+  const int ITER_CNT = 20;
+
+  T A(SIZE, SIZE, true);
+  T B(SIZE, SIZE, true);
+  T W(1, 1, false);
+  double t1 = mygettime();
+
+  for (int i = 0; i < ITER_CNT; i++) {
+    W = A + B;
+  }
+
+  double exec_time = mygettime() - t1;
+
+  // W.display();
+
+  return exec_time;
+}
+
+
 int main() {
 
 #if SELF_TEST
@@ -253,23 +281,24 @@ int main() {
 
   double t_prog = 0;
   for (int i = 0; i < TEST_AMOUNT; ++i) {
-    t_prog += multSpeedTest<MyAlgebra::Matrix>();
+    t_prog += speedTest<MyAlgebra::Matrix>();
     std::cout << "Test #" << i + 1 << std::endl;
   }
   std::cout << '\n';
   t_prog /= TEST_AMOUNT;
   printf("Czas wykonania testowany:    %7.2lfs\n", t_prog);
 
+
   double t_ref = 0;
 #if 0
   for (int i = 0; i < TEST_AMOUNT; ++i) {
-    t_ref += speedTest<RefAlgebra::Matrix>();
+    t_ref += addSpeedTest<RefAlgebra::Matrix>();
     std::cout << "Test #" << i + 1 << std::endl;
   }
   std::cout << '\n';
   t_ref /= TEST_AMOUNT;
 #else
-  t_ref = 2.35;
+  t_ref = 2.23;
 #endif
 
   printf("Czas wykonania referencyjny: %7.2lfs\n", t_ref);

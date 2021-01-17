@@ -3,10 +3,8 @@
 
 #include <cstddef>
 
-#include "vector.h"
 
 namespace MyAlgebra {
-class Vector;
 
 class Matrix {
  public:
@@ -55,7 +53,7 @@ class Matrix {
   // Minus unarny - zmiana znaku wszystkich wspołczynnikow macierzy
   Matrix operator-() const;
 
-  Matrix operator*(const Matrix &other) const;
+  Matrix operator*(const Matrix &other);
 
   // Mnozenie macierzy przez stałą
   Matrix operator*(float multiplier) const;
@@ -90,8 +88,11 @@ class Matrix {
   size_t m_col_cnt;
   float *m_array;
 
+  void add(const Matrix &res, const Matrix &other, size_t start,
+           size_t end) const;
   void multiply(const Matrix &res, const Matrix &other, size_t start,
                 size_t end) const;
+
 
   void copy(const Matrix &other);
   void move(Matrix &&other);

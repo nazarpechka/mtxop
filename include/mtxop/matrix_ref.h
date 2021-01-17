@@ -3,10 +3,7 @@
 
 #include <cstddef>
 
-#include "vector_ref.h"
-
 namespace RefAlgebra {
-class Vector;
 
 class Matrix {
  public:
