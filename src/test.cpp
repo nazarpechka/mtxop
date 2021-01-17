@@ -1,7 +1,7 @@
 // Precompiled headers - don't use them
 // #include "stdafx.h"
 
-#define SELF_TEST 1
+#define SELF_TEST 0
 #define BENCHMARK 1
 
 #include <stdlib.h>
@@ -245,31 +245,9 @@ double multSpeedTest() {
   return exec_time;
 }
 
-template <typename T>
-double addSpeedTest() {
-  // Przykładowe testowe obliczenie macierzowe na dodawanie.
-  srand(time(0));
-  const int SIZE = 4096;
-  const int ITER_CNT = 20;
-
-  T A(SIZE, SIZE, true);
-  T B(SIZE, SIZE, true);
-  T W(1, 1, false);
-  double t1 = mygettime();
-
-  for (int i = 0; i < ITER_CNT; i++) {
-    W = A + B;
-  }
-
-  double exec_time = mygettime() - t1;
-
-  // W.display();
-
-  return exec_time;
-}
-
 
 int main() {
+
 
 #if SELF_TEST
   selfTest<MyAlgebra::Matrix>();
@@ -277,11 +255,11 @@ int main() {
 
 #if BENCHMARK
   std::cout << "\nMatrix operations benchmark\n";
-  const int TEST_AMOUNT = 25;
+  const int TEST_AMOUNT = 15;
 
   double t_prog = 0;
   for (int i = 0; i < TEST_AMOUNT; ++i) {
-    t_prog += speedTest<MyAlgebra::Matrix>();
+    t_prog += multSpeedTest<MyAlgebra::Matrix>();
     std::cout << "Test #" << i + 1 << std::endl;
   }
   std::cout << '\n';
@@ -292,7 +270,7 @@ int main() {
   double t_ref = 0;
 #if 0
   for (int i = 0; i < TEST_AMOUNT; ++i) {
-    t_ref += addSpeedTest<RefAlgebra::Matrix>();
+    t_ref += speedTest<RefAlgebra::Matrix>();
     std::cout << "Test #" << i + 1 << std::endl;
   }
   std::cout << '\n';

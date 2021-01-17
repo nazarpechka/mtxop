@@ -70,7 +70,7 @@ endif ()
 
 # Build library
 add_library(${LIBRARY_NAME} src/matrix_ref.cpp
-                            src/matrix.cpp
+        src/matrix.cpp
         )
 target_link_libraries(${LIBRARY_NAME} PRIVATE project_options project_warnings)
 target_include_directories(${LIBRARY_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include/${LIBRARY_NAME})

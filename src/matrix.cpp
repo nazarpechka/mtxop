@@ -4,13 +4,11 @@
 #include <iostream>
 #include <thread>
 
-#define MULTITHREADING 1
 #define SWAP_LOOPS 1
-
 
 namespace MyAlgebra {
 
-const float Matrix::ALG_PRECISION = 10e-6f;
+const float Matrix::ALG_PRECISION = 10e-3f;
 
 Matrix::Matrix(size_t row_cnt, size_t col_cnt, bool rand_init)
     : m_row_cnt(row_cnt),
@@ -20,7 +18,7 @@ Matrix::Matrix(size_t row_cnt, size_t col_cnt, bool rand_init)
     for (size_t i = 0; i < m_row_cnt; ++i) {
       for (size_t j = 0; j < m_col_cnt; ++j) {
         m_array[i * m_col_cnt + j] =
-            static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+            static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
       }
     }
   } else {
@@ -135,23 +133,23 @@ Matrix Matrix::operator*(const Matrix &other) {
 
   Matrix res(m_row_cnt, other.m_col_cnt, false);
 
-#if MULTITHREADING
-  auto portion = static_cast<unsigned int>(ceil(m_row_cnt / 4.0f));
+  // Multithreading is only efficient for large matrices
+  if (m_row_cnt > 127) {
+    auto portion =
+        static_cast<unsigned int>(ceil(static_cast<float>(m_row_cnt) / 4.0f));
 
-  std::thread t1([&] { multiply(res, other, 0, portion); });
-  std::thread t2([&] { multiply(res, other, portion, 2 * portion); });
-  std::thread t3([&] { multiply(res, other, 2 * portion, 3 * portion); });
-  std::thread t4([&] { multiply(res, other, 3 * portion, m_row_cnt); });
+    std::thread t1([&] { multiply(res, other, 0, portion); });
+    std::thread t2([&] { multiply(res, other, portion, 2 * portion); });
+    std::thread t3([&] { multiply(res, other, 2 * portion, 3 * portion); });
+    std::thread t4([&] { multiply(res, other, 3 * portion, m_row_cnt); });
 
-  t1.join();
-  t2.join();
-  t3.join();
-  t4.join();
-#else
-
-  multiply(res, other, 0, m_row_cnt);
-
-#endif
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
+  } else {
+    multiply(res, other, 0, m_row_cnt);
+  }
 
   return res;
 }
@@ -224,6 +222,8 @@ void Matrix::display() const {
   }
   std::cout << '\n';
 }
+
+std::string Matrix::authorName() { return "Nazar_Pechevystyi"; }
 
 void Matrix::multiply(const Matrix &res, const Matrix &other, size_t start,
                       size_t end) const {

@@ -72,7 +72,7 @@ class Matrix {
   // =========================================================================
 
   float *operator[](size_t row_ind);
-  const float* operator[](size_t row_ind) const;
+  const float *operator[](size_t row_ind) const;
 
   size_t getRowCount() const;
   size_t getColCount() const;

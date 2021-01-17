@@ -5,7 +5,7 @@
 
 namespace RefAlgebra {
 
-const float Matrix::ALG_PRECISION = 10e-6f;
+const float Matrix::ALG_PRECISION = 10e-3f;
 
 Matrix::Matrix(size_t row_cnt, size_t col_cnt, bool rand_init)
     : m_row_cnt(row_cnt), m_col_cnt(col_cnt), m_array(new float *[m_row_cnt]) {
@@ -17,7 +17,7 @@ Matrix::Matrix(size_t row_cnt, size_t col_cnt, bool rand_init)
     for (size_t i = 0; i < m_row_cnt; ++i) {
       for (size_t j = 0; j < m_col_cnt; ++j) {
         m_array[i][j] =
-            static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+            static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
       }
     }
   } else {
@@ -190,7 +190,9 @@ Matrix Matrix::operator^(int power) const {}
 
 float *Matrix::operator[](size_t row_ind) { return m_array[row_ind]; }
 
-const float *Matrix::operator[](size_t row_ind) const { return m_array[row_ind]; }
+const float *Matrix::operator[](size_t row_ind) const {
+  return m_array[row_ind];
+}
 
 size_t Matrix::getRowCount() const { return m_row_cnt; }
 
@@ -226,7 +228,6 @@ void Matrix::move(Matrix &&other) {
   other.m_col_cnt = 0;
   other.m_array = nullptr;
 }
-
 
 Matrix operator*(float multiplier, const Matrix &other) {
   return other * multiplier;

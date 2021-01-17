@@ -2,7 +2,7 @@
 #define __CMTX_H__
 
 #include <cstddef>
-
+#include <string>
 
 namespace MyAlgebra {
 
@@ -73,13 +73,15 @@ class Matrix {
   // =========================================================================
 
   float *operator[](size_t row_ind);
-  const float* operator[](size_t row_ind) const;
+  const float *operator[](size_t row_ind) const;
 
   size_t getRowCount() const;
   size_t getColCount() const;
 
   // Tylko do celow testowych - wypisuje macierz wierszami na stdout
   void display() const;
+
+  static std::string authorName();
 
   // friend Matrix operator*( float multiplier, const Matrix &other );
 
@@ -88,11 +90,8 @@ class Matrix {
   size_t m_col_cnt;
   float *m_array;
 
-  void add(const Matrix &res, const Matrix &other, size_t start,
-           size_t end) const;
   void multiply(const Matrix &res, const Matrix &other, size_t start,
                 size_t end) const;
-
 
   void copy(const Matrix &other);
   void move(Matrix &&other);
