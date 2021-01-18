@@ -18,6 +18,7 @@ Matrix::Matrix(size_t row_cnt, size_t col_cnt, bool rand_init)
       for (size_t j = 0; j < m_col_cnt; ++j) {
         m_array[i][j] =
             static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+//        m_array[i][j] = rand() % 10;
       }
     }
   } else {

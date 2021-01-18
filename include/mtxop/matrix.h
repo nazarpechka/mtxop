@@ -91,7 +91,7 @@ class Matrix {
   float *m_array;
 
   void multiply(const Matrix &res, const Matrix &other, size_t start,
-                size_t end) const;
+                size_t end, size_t col_cnt, size_t other_col_cnt) const;
 
   void copy(const Matrix &other);
   void move(Matrix &&other);

@@ -56,15 +56,11 @@ set_project_warnings(project_warnings)
 add_library(project_options INTERFACE)
 
 target_compile_features(project_options INTERFACE cxx_std_17)
-# set_target_properties(project_options PROPERTIES 
-# 	CXX_STANDARD 17
-# 	CXX_STANDARD_REQUIRED YES
-# 	CXX_EXTENSIONS NO)
 
 if (MSVC)
-    target_compile_options(project_options INTERFACE $<$<CONFIG:RELEASE>:/O2>)
+    target_compile_options(project_options INTERFACE $<$<CONFIG:RELEASE>:/O2 /Ob2 /Oi /Ot /GT /Gy /arch:AVX2>)
 else ()
-    target_compile_options(project_options INTERFACE $<$<CONFIG:DEBUG>:-g> $<$<CONFIG:RELEASE>: -funroll-loops -march=native>)
+    target_compile_options(project_options INTERFACE -march=native $<$<CONFIG:DEBUG>:-g > $<$<CONFIG:RELEASE>: -funroll-loops>)
 endif ()
 
 
