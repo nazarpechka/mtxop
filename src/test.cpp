@@ -248,25 +248,6 @@ double multSpeedTest() {
 
 
 int main() {
-//  const size_t size = 23;
-//  srand(123);
-//  MyAlgebra::Matrix mtx1(size, size, true);
-//  MyAlgebra::Matrix mtx2(size, size, true);
-//  mtx1.display();
-//  mtx2.display();
-//  MyAlgebra::Matrix res = mtx1 * mtx2;
-//  res.display();
-//
-//  srand(123);
-//  RefAlgebra::Matrix mtx1r(size, size, true);
-//  RefAlgebra::Matrix mtx2r(size, size, true);
-//  RefAlgebra::Matrix resr = mtx1r * mtx2r;
-//  resr.display();
-//
-//  std::cout << (resr == res) << '\n';
-
-
-
 
 #if SELF_TEST
   selfTest<MyAlgebra::Matrix>();
@@ -274,7 +255,7 @@ int main() {
 
 #if BENCHMARK
   std::cout << "\nMatrix operations benchmark\n";
-  const int TEST_AMOUNT = 25;
+  const int TEST_AMOUNT = 15;
 
   double t_prog = 0;
   for (int i = 0; i < TEST_AMOUNT; ++i) {
