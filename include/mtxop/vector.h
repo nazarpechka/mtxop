@@ -51,7 +51,8 @@ class Vector {
 };
 
 template <typename T>
-Vector<T>::Vector(size_t size, bool rand_init) : m_size(size), m_array(new T[m_size]) {
+Vector<T>::Vector(size_t size, bool rand_init)
+    : m_size(size), m_array(new T[m_size]) {
   if (rand_init) {
     for (size_t i = 0; i < m_size; ++i) {
       m_array[i] = random_number();
@@ -63,22 +64,26 @@ Vector<T>::Vector(size_t size, bool rand_init) : m_size(size), m_array(new T[m_s
 }
 
 template <typename T>
-Vector<T>::Vector(const Vector &other) { copy(other); }
+Vector<T>::Vector(const Vector &other) {
+  copy(other);
+}
 
 template <typename T>
-Vector<T>::Vector(Vector &&other) noexcept { move(std::move(other)); }
+Vector<T>::Vector(Vector &&other) noexcept {
+  move(std::move(other));
+}
 
 template <typename T>
-Vector<T>::~Vector() { delete[] m_array; }
+Vector<T>::~Vector() {
+  delete[] m_array;
+}
 
 template <typename T>
 Vector<T> &Vector<T>::operator=(const Vector &other) {
   if (this != &other) {
     delete[] m_array;
-
     copy(other);
   }
-
   return *this;
 }
 
@@ -86,14 +91,14 @@ template <typename T>
 Vector<T> &Vector<T>::operator=(Vector &&other) noexcept {
   if (this != &other) {
     delete[] m_array;
-
     move(std::move(other));
   }
+  return *this;
 }
 
 template <typename T>
 Vector<T> &Vector<T>::operator=(T val) {
-  for (int i = 0; i < m_size; ++i) {
+  for (size_t i = 0; i < m_size; ++i) {
     m_array[i] = val;
   }
 
@@ -102,11 +107,12 @@ Vector<T> &Vector<T>::operator=(T val) {
 
 template <typename T>
 bool Vector<T>::operator==(const Vector &other) const {
-  if(this != &other) {
-    if(m_size != other.m_size) return false;
+  if (this != &other) {
+    if (m_size != other.m_size) return false;
 
-    for(size_t i = 0; i < m_size; ++i) {
-      if (std::abs(m_array[i] - other.m_array[i]) > Matrix<T>::CMP_PRECISION) return false;
+    for (size_t i = 0; i < m_size; ++i) {
+      if (std::abs(m_array[i] - other.m_array[i]) > Matrix<T>::CMP_PRECISION)
+        return false;
     }
   }
 
@@ -165,7 +171,7 @@ template <typename T>
 Vector<T> Vector<T>::operator*(T multiplier) const {
   Vector res(m_size);
 
-  for(size_t i = 0; i < m_size; ++i) {
+  for (size_t i = 0; i < m_size; ++i) {
     res.m_array[i] = m_array[i] * multiplier;
   }
 
@@ -173,10 +179,14 @@ Vector<T> Vector<T>::operator*(T multiplier) const {
 }
 
 template <typename T>
-T &Vector<T>::operator[](int ind) { return m_array[ind]; }
+T &Vector<T>::operator[](int ind) {
+  return m_array[ind];
+}
 
 template <typename T>
-const T &Vector<T>::operator[](int ind) const { return m_array[ind]; }
+const T &Vector<T>::operator[](int ind) const {
+  return m_array[ind];
+}
 
 template <typename T>
 size_t Vector<T>::size() const {
@@ -185,13 +195,13 @@ size_t Vector<T>::size() const {
 
 template <typename T>
 T Vector<T>::get(size_t i) const {
-  if(i > (m_size - 1)) return -1;
+  if (i > (m_size - 1)) return -1;
   return m_array[i];
 }
 
 template <typename T>
 bool Vector<T>::set(size_t i, T value) {
-  if(i > (m_size - 1)) return false;
+  if (i > (m_size - 1)) return false;
   m_array[i] = value;
   return true;
 }
@@ -220,7 +230,6 @@ double Vector<double>::random_number() const {
   return static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
 }
 
-
 template <typename T>
 void Vector<T>::copy(const Vector &other) {
   m_size = other.m_size;
@@ -237,6 +246,5 @@ void Vector<T>::move(Vector &&other) {
   other.m_size = 0;
   other.m_array = nullptr;
 }
-
 
 #endif  // MATRIX_OPERATIONS_VECTOR_H

@@ -15,4 +15,12 @@ int main() {
 
   std::cout << "Second column:\n";
   int_mat.extractColumn(1).display();
+
+  Matrix<int> square(7, 6);
+  square.display();
+
+  Matrix<int> not_square(7, 6, false);
+  not_square = 5;
+  not_square.display();
+
 }

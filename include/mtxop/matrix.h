@@ -133,10 +133,8 @@ template <typename T>
 Matrix<T> &Matrix<T>::operator=(const Matrix<T> &other) {
   if (this != &other) {
     delete[] m_array;
-
     copy(other);
   }
-
   return *this;
 }
 
@@ -144,16 +142,20 @@ template <typename T>
 Matrix<T> &Matrix<T>::operator=(Matrix<T> &&other) noexcept {
   if (this != &other) {
     delete[] m_array;
-
     move(std::move(other));
   }
-
   return *this;
 }
 
 template <typename T>
 Matrix<T> &Matrix<T>::operator=(T diagonal) {
-  if(m_row_cnt != m_col_cnt) return *this;
+  if (m_row_cnt != m_col_cnt) {
+    const size_t dimension = std::min(m_row_cnt, m_col_cnt);
+    delete[] m_array;
+
+    m_array = new T[dimension * dimension];
+    m_row_cnt = m_col_cnt = dimension;
+  }
 
   memset(m_array, 0, sizeof(T) * m_row_cnt * m_col_cnt);
 
@@ -216,7 +218,7 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T> &other) const {
   //            0 0 0 0
   //  3x3         4x4        3x4
 
-  const size_t inner_dimension = std::min(m_col_cnt, other.m_row_cnt);
+  const size_t inner_dim = std::min(m_col_cnt, other.m_row_cnt);
   Matrix<T> res(m_row_cnt, other.m_col_cnt, false);
 
 #if TRANSPOSE_AND_SIMD
@@ -230,41 +232,42 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T> &other) const {
 
 #if TRANSPOSE_AND_SIMD
     std::thread t1([&] {
-      multiply(res, transposed, 0, portion, inner_dimension, other.m_col_cnt);
+      multiply(res, transposed, 0, portion, inner_dim, other.m_col_cnt);
     });
     std::thread t2([&] {
-      multiply(res, transposed, portion, 2 * portion, inner_dimension,
+      multiply(res, transposed, portion, 2 * portion, inner_dim,
                other.m_col_cnt);
     });
     std::thread t3([&] {
-      multiply(res, transposed, 2 * portion, 3 * portion, inner_dimension,
+      multiply(res, transposed, 2 * portion, 3 * portion, inner_dim,
                other.m_col_cnt);
     });
-    multiply(res, transposed, 3 * portion, m_row_cnt, inner_dimension,
+    multiply(res, transposed, 3 * portion, m_row_cnt, inner_dim,
              other.m_col_cnt);
 #else
-    std::thread t1(
-        [&] { multiply(res, other, 0, portion, inner_dimension, other.m_col_cnt); });
-    std::thread t2([&] {
-      multiply(res, other, portion, 2 * portion, inner_dimension, other.m_col_cnt);
+    std::thread t1([&] {
+      multiply(res, other, 0, portion, inner_dim, other.m_col_cnt);
     });
-    std::thread t3([&] {
-      multiply(res, other, 2 * portion, 3 * portion, inner_dimension,
+    std::thread t2([&] {
+      multiply(res, other, portion, 2 * portion, inner_dim,
                other.m_col_cnt);
     });
-    multiply(res, other, 3 * portion, m_row_cnt, inner_dimension, other.m_col_cnt);
+    std::thread t3([&] {
+      multiply(res, other, 2 * portion, 3 * portion, inner_dim,
+               other.m_col_cnt);
+    });
+    multiply(res, other, 3 * portion, m_row_cnt, inner_dim,
+             other.m_col_cnt);
 
 #endif
-
     t1.join();
     t2.join();
     t3.join();
-
   } else {
 #if TRANSPOSE_AND_SIMD
-    multiply(res, transposed, 0, m_row_cnt, inner_dimension, other.m_col_cnt);
+    multiply(res, transposed, 0, m_row_cnt, inner_dim, other.m_col_cnt);
 #else
-    multiply(res, other, 0, m_row_cnt, inner_dimension, other.m_col_cnt);
+    multiply(res, other, 0, m_row_cnt, inner_dim, other.m_col_cnt);
 #endif
   }
 
@@ -293,7 +296,7 @@ Matrix<T> Matrix<T>::operator*(const Vector<T> &other) const {
   Matrix res(m_row_cnt, other.size());
 
   for (size_t row = 0; row < m_row_cnt; ++row) {
-    for(size_t col = 0; col < other.size(); ++col) {
+    for (size_t col = 0; col < other.size(); ++col) {
       res[row][col] = m_array[row * m_col_cnt] * other[col];
     }
   }
@@ -338,10 +341,10 @@ const T *Matrix<T>::operator[](size_t row_ind) const {
 
 template <typename T>
 Vector<T> Matrix<T>::extractRow(size_t index) const {
-  if(index > (m_row_cnt - 1)) return Vector<T>(0);
+  if (index > (m_row_cnt - 1)) return Vector<T>(0);
   Vector<T> res(m_col_cnt);
 
-  for(size_t j = 0; j < m_col_cnt; ++j) {
+  for (size_t j = 0; j < m_col_cnt; ++j) {
     res[j] = m_array[index][j];
   }
 
@@ -350,10 +353,10 @@ Vector<T> Matrix<T>::extractRow(size_t index) const {
 
 template <typename T>
 Vector<T> Matrix<T>::extractColumn(size_t index) const {
-  if(index > (m_col_cnt - 1)) return Vector<T>(0);
+  if (index > (m_col_cnt - 1)) return Vector<T>(0);
   Vector<T> res(m_row_cnt);
 
-  for(size_t j = 0; j < m_row_cnt; ++j) {
+  for (size_t j = 0; j < m_row_cnt; ++j) {
     res[j] = m_array[j * m_col_cnt + index];
   }
 
@@ -367,7 +370,7 @@ Matrix<T> Matrix<T>::readFromFile(const std::string &filepath,
   file.open(filepath, std::ios::in);
   if (!file.is_open()) return Matrix<T>(0, 0, false);
 
-  size_t rows = 0, columns = 0;
+  size_t rows = 0, columns;
   std::vector<size_t> ind_columns;
   std::string line, number;
   while (std::getline(file, line)) {
@@ -380,6 +383,7 @@ Matrix<T> Matrix<T>::readFromFile(const std::string &filepath,
   }
   columns = *std::min_element(ind_columns.begin(), ind_columns.end());
 
+  // We've read the dimensions, now read the numbers
   file.clear();
   file.seekg(0);
 
@@ -392,7 +396,7 @@ Matrix<T> Matrix<T>::readFromFile(const std::string &filepath,
 
     for (size_t j = 0;
          j < columns && std::getline(row_stream, number, delimiter); ++j) {
-      res[i][j] = std::stod(number);
+      res[i][j] = static_cast<T>(std::stod(number));
     }
   }
 
@@ -412,17 +416,16 @@ template <typename T>
 
 template <typename T>
 T Matrix<T>::get(size_t i, size_t j) const {
-  if(i > (m_row_cnt - 1) || j > (m_col_cnt - 1)) return -1;
+  if (i > (m_row_cnt - 1) || j > (m_col_cnt - 1)) return -1;
   return m_array[i * m_col_cnt + j];
 }
 
 template <typename T>
 bool Matrix<T>::set(size_t i, size_t j, T value) {
-  if(i > (m_row_cnt - 1) || j > (m_col_cnt - 1)) return false;
+  if (i > (m_row_cnt - 1) || j > (m_col_cnt - 1)) return false;
   m_array[i * m_col_cnt + j] = value;
   return true;
 }
-
 
 template <typename T>
 void Matrix<T>::display() const {
@@ -560,9 +563,9 @@ void Matrix<T>::copy(const Matrix<T> &other) {
   m_row_cnt = other.m_row_cnt;
   m_col_cnt = other.m_col_cnt;
   const size_t size = m_row_cnt * m_col_cnt;
-  m_array = new float[size];
+  m_array = new T[size];
 
-  memcpy(m_array, other.m_array, sizeof(float) * size);
+  memcpy(m_array, other.m_array, sizeof(T) * size);
 }
 
 template <typename T>
